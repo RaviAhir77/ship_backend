@@ -1,0 +1,60 @@
+<div class="quotation-container">
+    <div class="quotation-header">
+        <h2>Quotation List</h2>
+        <div class="button-group">
+            <button id="toggleFormBtn">Create New Quotation</button> 
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="quotation-table">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Doc</th>
+                    <th>Quotation No.</th>
+                    <th>Consignee</th>
+                    <th>Products</th>
+                    <th>Country</th>
+                    <th>Port</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Balance Due</th>
+                    <th>Conv. Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% quotations.forEach((quotation) => { %>
+                    <tr>
+                        <td>
+                            <button class="btn btn-primary btn-sm">Action</button>
+                        </td>
+                        <td>
+                            <i class="doc-icon">📄</i>
+                        </td>
+                        <td><%= quotation.id %></td>
+                        <td><%= quotation.Consignee.name %></td>
+                        <td>
+                            <% quotation.QuotationProducts.forEach((product, index) => { %>
+                                <%= product.Product.productName %> (<%= product.quantity %>)
+                                <% if (index < quotation.QuotationProducts.length - 1) { %>, <% } %>
+                            <% }); %>
+                        </td>
+                        <td><%= quotation.Country.country_name %></td>
+                        <td><%= quotation.Port.portName %></td>
+                        <td>
+                            <% if (quotation.status === "Accepted") { %>
+                                <span class="status-accepted">Accepted</span>
+                            <% } else { %>
+                                <span class="status-draft">Draft</span>
+                            <% } %>
+                        </td>
+                        <td><%= quotation.total_native %> (USD)</td>
+                        <td><%= quotation.total_native %> (USD)</td>
+                        <td><%= quotation.conversion_rate %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,171 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+/* Tab Menu */
+.tab-menu {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    background: #333;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.tab-menu li {
+    flex: 1;
+    text-align: center;
+}
+
+.tab-menu a {
+    display: block;
+    padding: 10px 15px;
+    color: white;
+    text-decoration: none;
+    transition: background 0.3s ease;
+}
+
+.tab-menu a:hover {
+    background: #555;
+}
+
+.tab-menu a.active {
+    background: #007bff;
+}
+
+/* Form Styling */
+.product-form {
+    max-width: 1080px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Sections */
+#productDetailsSection, #advancedDetailsSection {
+    padding: 20px;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: none; 
+}
+.active{
+    display: block;
+}
+#productDetailsSection.active {
+    display: block; 
+}
+
+#advancedDetailsSection.active {
+    display: block;
+}
+
+
+label {
+    display: block;
+    font-weight: bold;
+    margin: 10px 0 5px;
+}
+
+input, select, textarea {
+    width: 90%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Buttons */
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.button-container button {
+    padding: 10px 15px;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.button-container button:hover {
+    background: #0056b3;
+}
+
+button#prevBtn {
+    background: #6c757d;
+}
+
+button#prevBtn:hover {
+    background: #5a6268;
+}
+
+
+.product-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.product-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.details {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.details div {
+    flex: 1;
+}
+
+textarea {
+    height: 80px;
+    resize: none;
+}
+
+
+.advance {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    border-radius: 5px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.details {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.details div {
+    flex: 1;
+}
+
+
+#dimension {
+    display: flex;
+    gap: 5px;
+}
+
+#dimension input {
+    flex: 1;
+}

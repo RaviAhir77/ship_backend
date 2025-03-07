@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation PDF</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid black; padding: 5px; text-align: left; }
+        th { background-color: #f2f2f2; text-align: center; }
+        .header-table td { font-weight: bold; }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align:center;">QUOTATION</h2>
+
+    <table class="header-table">
+        <tr>
+            <td colspan="2">
+                <strong>EXPORTER:</strong> TEST SERVER <br>
+                405, VARDHMAN TRADE CENTER, <br>
+                RACECOURSE ROAD, <br>
+                JILLA PANCHAYAT CHOWK, <br>
+                PHULCHAAB CHAR RASTA, SADAR <br>
+                BAZAAR ROAD <br>
+                RAJKOT, GUJARAT 360001
+            </td>
+            <td colspan="2">
+                <strong>QUOTATION NO.</strong> <%= quotations.id %> <br>
+                <strong>DATE:</strong> <%= quotations.date %> <br>
+                <strong>EXPORTER'S REF.:</strong> IEC NO. 432342 <br>
+                <strong>GSTIN:</strong> 12ABCDE1234FZ5 <br>
+                <strong>FSSAI NO.:</strong> 414126
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>CONSIGNEE:</strong> <%= quotations.Consignee?.name %> <br>
+                <strong>ADDRESS:</strong><%= quotations.Consignee?.address %>
+            </td>
+            <td colspan="2">
+                <strong>BUYER ORDER NO.:</strong> <br>
+                <strong>DATE:</strong>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>NOTIFY PARTY:</strong>
+            </td>
+            <td colspan="2">
+                <strong>PRE-CARRIAGE BY:</strong> BY SEA
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>COUNTRY OF ORIGIN OF GOODS:</strong> INDIA
+            </td>
+            <td colspan="2">
+                <strong>COUNTRY OF FINAL DESTINATION:</strong> CHINA
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>SHIPMENT PERIOD:</strong> Incoterms 2024
+            </td>
+            <td colspan="2">
+                <strong>PAYMENT TERMS:</strong>
+            </td>
+        </tr>
+    </table>
+
+    <h3>Product Details</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>SR. NO.</th>
+                <th>MARKING</th>
+                <th>NO. OF PACKAGES</th>
+                <th>DESCRIPTION OF GOODS</th>
+                <th>H.S. CODE</th>
+                <th>QTY. TOTAL</th>
+                <th>NET W.T.</th>
+                <th>GROSS W.T.</th>
+                <th>RATE (<%= quotations.Currency?.currency %>)</th>
+                <th>TOTAL (<%= quotations.Currency?.currency %>)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% quotations.QuotationProducts.forEach((product, index) => { %>
+                <tr>
+                    <td><%= index + 1 %></td>
+                    <% 
+                        let productName = product.Product.productName; 
+                        let variantName = "";
+                        
+                        if (product.variant_id && product.variant_id !== 0) {
+                            let variant = product.Product.variants.find(v => v.id === product.variant_id);
+                            if (variant) {
+                                variantName = " - " + variant.name;
+                            }
+                        }
+                    %>
+        
+                    <td><%= productName + variantName %></td>
+                    <td><%= product.total_package %></td>
+                    <td></td>
+                    <td></td>
+                    <td><%= product.quantity %> <%= product.Unit.orderUnit %></td>
+                    <td><%= product.net_weight %> <%= product.Unit.packingUnit %></td>
+                    <td><%= product.gross_weight %> <%= product.Unit.packingUnit %></td>
+                    <td><%= product.price %> </td>
+                    <td><%= product.total %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+        <tr>
+            <td colspan="5" style="text-align: right;"></td>
+            <td>
+                <strong>TOTAL QTY.</strong>
+                <br>
+                <span><%= quotations.totalQuantity %></span>
+            </td>
+            <td></td>
+            <td></td>
+            <td>
+                <span>SUBTOTAL</span><br>
+                <span>DISCOUNT</span> <br>
+                <span>TOTAL FOB</span> 
+            </td>
+            <td>
+                <span><%= quotations.total_native %></span> <br>
+                <span>0 %</span> <br>
+                <span><%= quotations.total_native %></span>
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td><strong>Packing Details</strong></td>
+            <td><strong>Total Net Weight:</strong><%= quotations.totalNetWeight %></td>
+            <td><strong>Total Gross Weight:</strong><%= quotations.totalGrossWeight %> </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td><strong>Amount in Words:</strong> <%= quotations.total_native_words %></td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td><strong>Declaration:</strong> WE HEREBY DECLARE ALL DOCUMENTS AND QUALITY TESTED</td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <p><strong>Customer Care:</strong> 📞 9999955555 | ✉️ vgqa00@gmail.com | 🌐 www.TEST.com</p>
+    </div>
+
+</body>
+</html>
