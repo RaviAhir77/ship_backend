@@ -9,11 +9,12 @@
 <body>
     
     <div id="quotationFormContainer">
-        <form id="quotationForm" action="/quotation/create" method="POST">
+        <form id="quotationForm">
+            <input type="hidden" name="quotation_id" id="quotation_id">
             <button type="button" id="closeFormBtn">&times;</button>
             <div>
                 <label for="date">Date:</label>
-                <input type="date" name="date" required>
+                <input type="date" name="date" id="date" required>
             
                 <label for="consignee_id">Consignee Name:</label>
                 <select name="consignee_id" id="consignee_id" required>

@@ -2,11 +2,14 @@
     <div class="quotation-header">
         <h2>Quotation List</h2>
         <div class="button-group">
+            <select id="quotationSelect">
+                <option value="">-- Select Quotation --</option>
+            </select>
             <button id="toggleFormBtn">Create New Quotation</button> 
         </div>
     </div>
 
-    <div class="table-container">
+    <div id="quotationTable" class="table-container">
         <table class="quotation-table">
             <thead>
                 <tr>
@@ -23,11 +26,11 @@
                     <th>Conv. Rate</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody >
                 <% quotations.forEach((quotation) => { %>
                     <tr>
                         <td>
-                            <button class="btn btn-primary btn-sm">Action</button>
+                            <button class="editBtn" data-id="<%= quotation.id %>">Edit</button>
                         </td>
                         <td>
                             <i class="doc-icon">📄</i>
