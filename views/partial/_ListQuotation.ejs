@@ -33,7 +33,7 @@
                             <button class="editBtn" data-id="<%= quotation.id %>">Edit</button>
                         </td>
                         <td>
-                            <i class="doc-icon">📄</i>
+                            <i class="doc-icon" data-id="<%= quotation.id %>" style="cursor: pointer;">📄</i>
                         </td>
                         <td><%= quotation.id %></td>
                         <td><%= quotation.Consignee.name %></td>
@@ -52,12 +52,19 @@
                                 <span class="status-draft">Draft</span>
                             <% } %>
                         </td>
-                        <td><%= quotation.total_native %> (USD)</td>
-                        <td><%= quotation.total_native %> (USD)</td>
+                        <td><%= quotation.total_native %> (<%= quotation.Currency.currency %>)</td>
+                        <td><%= quotation.total_native %> (<%= quotation.Currency.currency %>)</td>
                         <td><%= quotation.conversion_rate %></td>
                     </tr>
                 <% }); %>
             </tbody>
         </table>
+    </div>
+
+    <div id="pdfModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <iframe id="pdfFrame" width="100%" height="500px"></iframe>
+        </div>
     </div>
 </div>

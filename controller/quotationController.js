@@ -20,6 +20,8 @@ const {toWords} = pkg
 import dotenv from 'dotenv'
 dotenv.config()
 
+import { generateAndStorePDF } from '../Config/pdfGenerator.js';
+
 import AWS from 'aws-sdk';
 import { S3Client, PutObjectCommand,GetObjectCommand  } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -344,86 +346,11 @@ export const getPDF = async(req,res) => {
 export const generatePDF = async(req,res) => {
     try{
         const { id } = req.params;
-        let quotations = await quotationSchema.findOne({
-            where: { id }, 
-            include: [
-                {
-                    model: quotationProductSchema,
-                    include: [
-                        { model: productSchema, attributes: ['productName', 'variants'] },
-                        { model: unitSchema, attributes: ['orderUnit', 'packingUnit'] },
-                    ],
-                },
-                { model: consigneeSchema, attributes: ['name','address'] },
-                { model: countrySchema, attributes: ['country_name'] },
-                { model: portSchema, attributes: ['portName'] },
-                { model: currencySchema, attributes: ['currency'] },
-            ],
-        });
-
-        if (!quotations) {
-            return res.status(404).json({ message: 'Quotation not found' });
-        }
-
-        const quotationData = quotations.toJSON();
-
         
-        quotationData.totalQuantity = quotationData.QuotationProducts.reduce((sum, product) => {
-            return sum + parseFloat(product.quantity);
-        }, 0);
 
-        
-        quotationData.total_native_words = toWords(Number(quotationData.total_native)) + " " + quotationData.Currency.currency + " ONLY"; // In words
+        const generator = await generateAndStorePDF(id)
 
-        const ejsTemplate = fs.readFileSync(path.join(__dirname, "views/pdf.ejs"), "utf-8");
-        const htmlContent = ejs.render(ejsTemplate,{quotations : quotationData});
-
-
-        const browser = await puppeteer.launch({
-            headless: 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            dumpio: true,
-        });
-        const page = await browser.newPage();
-
-        await page.setContent(htmlContent, {
-            waitUntil: "networkidle0"
-        });
-
-        const pdfBuffer = await page.pdf({
-            format: "A4",
-            printBackground: true
-        });
-
-        console.log("PDF Buffer Length:", pdfBuffer.length);
-
-        await browser.close();
-
-        // res.setHeader('Content-Disposition', 'attachment; filename="invoice.pdf"');
-        // res.setHeader('Content-Type', 'application/pdf');
-        // res.setHeader('Content-Length', pdfBuffer.length);
-
-
-        // res.end(pdfBuffer,'binary');
-
-        const fileName = `quotations/Ravi_${id}.pdf`; 
-        const uploadParams = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: fileName,
-            Body: pdfBuffer,
-            ContentType: "application/pdf",
-        };
-
-        await s3.send(new PutObjectCommand(uploadParams));
-
-        const getObjectParams = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: fileName,
-        };
-
-        const signedUrl = await getSignedUrl(s3, new GetObjectCommand(getObjectParams), { expiresIn: 3600 });
-
-        return res.json({ message: "PDF generated successfully", signedUrl });
+         res.json({ message: "PDF generated successfully", s3url : generator });
     } catch (error) {
         console.error("Error generating PDF:", error);
         res.status(500).send("Error generating PDF");
@@ -565,3 +492,46 @@ export const updateQuotation = async(req,res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
+
+export const getSignedUrls = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        
+        let quotation = await quotationSchema.findOne({ where: { id } });
+
+        
+        if (!quotation || !quotation.pdf_link) {
+            console.log("PDF not found, generating new one...");
+
+            const pdfLink = await generateAndStorePDF(id); 
+
+            if (!pdfLink) {
+                return res.status(500).json({ message: "Failed to generate PDF" });
+            }
+
+            
+            await quotationSchema.update({ pdf_link: pdfLink }, { where: { id } });
+
+            // Fetch the updated quotation
+            quotation = await quotationSchema.findOne({ where: { id } });
+        }
+
+        // Extract file path from stored S3 URL
+        const fileUrl = new URL(quotation.pdf_link);
+        const fileName = fileUrl.pathname.substring(1); // Removes leading '/'
+
+        // Generate a signed URL for secure access
+        const getObjectParams = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: fileName,
+        };
+
+        const signedUrl = await getSignedUrl(s3, new GetObjectCommand(getObjectParams), { expiresIn: 3600 });
+
+        return res.json({ signedUrl });
+    } catch (error) {
+        console.error("Error getting signed URL:", error);
+        res.status(500).json({ message: "Error getting signed URL" });
+    }
+};

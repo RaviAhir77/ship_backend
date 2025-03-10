@@ -1,0 +1,331 @@
+[
+    {
+        "id": 1,
+        "date": "2025-03-18",
+        "consignee_id": 2,
+        "country_id": 1,
+        "port_id": 2,
+        "currency_id": 3,
+        "conversion_rate": "100.00",
+        "totalNetWeight": "200.00",
+        "totalGrossWeight": "200.00",
+        "total_native": "200.00",
+        "total_inr": "20000.00",
+        "createdAt": "2025-03-07T04:19:24.000Z",
+        "updatedAt": "2025-03-08T13:55:08.000Z",
+        "QuotationProducts": [
+            {
+                "id": 37,
+                "quotation_id": 1,
+                "product_id": 5,
+                "variant_id": 2,
+                "quantity": "20.00",
+                "price": "10.00",
+                "total": "200.00",
+                "unit_id": 7,
+                "package_id": 53,
+                "net_weight": "200.00",
+                "gross_weight": "200.00",
+                "total_package": 2,
+                "createdAt": "2025-03-08T13:55:09.000Z",
+                "updatedAt": "2025-03-08T13:55:09.000Z",
+                "Product": {
+                    "variants": [
+                        {
+                            "id": 1,
+                            "name": "childeren",
+                            "image": null
+                        },
+                        {
+                            "id": 2,
+                            "name": "mans",
+                            "image": null
+                        }
+                    ],
+                    "productName": "Boots"
+                },
+                "Unit": {
+                    "orderUnit": "PIECE",
+                    "packingUnit": "MT"
+                }
+            }
+        ],
+        "Consignee": {
+            "name": "Maple Shipping Co.",
+            "address": "456 Queen St, Toronto, ON"
+        },
+        "Country": {
+            "country_name": "USA"
+        },
+        "Port": {
+            "portName": "Port of Vancouver"
+        },
+        "Currency": {
+            "currency": "GBP"
+        }
+    },
+    {
+        "id": 2,
+        "date": "2025-03-18",
+        "consignee_id": 2,
+        "country_id": 3,
+        "port_id": 2,
+        "currency_id": 3,
+        "conversion_rate": "100.00",
+        "totalNetWeight": "345.00",
+        "totalGrossWeight": "2825.00",
+        "total_native": "400.00",
+        "total_inr": "40000.00",
+        "createdAt": "2025-03-07T04:23:27.000Z",
+        "updatedAt": "2025-03-07T04:23:27.000Z",
+        "QuotationProducts": [],
+        "Consignee": {
+            "name": "Maple Shipping Co.",
+            "address": "456 Queen St, Toronto, ON"
+        },
+        "Country": {
+            "country_name": "Germany"
+        },
+        "Port": {
+            "portName": "Port of Vancouver"
+        },
+        "Currency": {
+            "currency": "GBP"
+        }
+    },
+    {
+        "id": 3,
+        "date": "2025-03-18",
+        "consignee_id": 2,
+        "country_id": 3,
+        "port_id": 2,
+        "currency_id": 3,
+        "conversion_rate": "100.00",
+        "totalNetWeight": "345.00",
+        "totalGrossWeight": "2825.00",
+        "total_native": "400.00",
+        "total_inr": "40000.00",
+        "createdAt": "2025-03-07T04:23:55.000Z",
+        "updatedAt": "2025-03-07T04:23:55.000Z",
+        "QuotationProducts": [
+            {
+                "id": 1,
+                "quotation_id": 3,
+                "product_id": 5,
+                "variant_id": 1,
+                "quantity": "20.00",
+                "price": "10.00",
+                "total": "200.00",
+                "unit_id": 6,
+                "package_id": 54,
+                "net_weight": "125.00",
+                "gross_weight": "275.00",
+                "total_package": 5,
+                "createdAt": "2025-03-07T04:23:55.000Z",
+                "updatedAt": "2025-03-07T04:23:55.000Z",
+                "Product": {
+                    "variants": [
+                        {
+                            "id": 1,
+                            "name": "childeren",
+                            "image": null
+                        },
+                        {
+                            "id": 2,
+                            "name": "mans",
+                            "image": null
+                        }
+                    ],
+                    "productName": "Boots"
+                },
+                "Unit": {
+                    "orderUnit": "LTR",
+                    "packingUnit": "KG"
+                }
+            },
+            {
+                "id": 2,
+                "quotation_id": 3,
+                "product_id": 5,
+                "variant_id": 1,
+                "quantity": "20.00",
+                "price": "10.00",
+                "total": "200.00",
+                "unit_id": 3,
+                "package_id": 52,
+                "net_weight": "220.00",
+                "gross_weight": "2550.00",
+                "total_package": 10,
+                "createdAt": "2025-03-07T04:23:55.000Z",
+                "updatedAt": "2025-03-07T04:23:55.000Z",
+                "Product": {
+                    "variants": [
+                        {
+                            "id": 1,
+                            "name": "childeren",
+                            "image": null
+                        },
+                        {
+                            "id": 2,
+                            "name": "mans",
+                            "image": null
+                        }
+                    ],
+                    "productName": "Boots"
+                },
+                "Unit": {
+                    "orderUnit": "JAR",
+                    "packingUnit": "TON"
+                }
+            }
+        ],
+        "Consignee": {
+            "name": "Maple Shipping Co.",
+            "address": "456 Queen St, Toronto, ON"
+        },
+        "Country": {
+            "country_name": "Germany"
+        },
+        "Port": {
+            "portName": "Port of Vancouver"
+        },
+        "Currency": {
+            "currency": "GBP"
+        }
+    },
+    {
+        "id": 4,
+        "date": "2025-03-18",
+        "consignee_id": 2,
+        "country_id": 3,
+        "port_id": 2,
+        "currency_id": 3,
+        "conversion_rate": "100.00",
+        "totalNetWeight": "1345.00",
+        "totalGrossWeight": "3825.00",
+        "total_native": "450.00",
+        "total_inr": "45000.00",
+        "createdAt": "2025-03-07T04:25:29.000Z",
+        "updatedAt": "2025-03-07T04:25:29.000Z",
+        "QuotationProducts": [
+            {
+                "id": 3,
+                "quotation_id": 4,
+                "product_id": 5,
+                "variant_id": 1,
+                "quantity": "20.00",
+                "price": "10.00",
+                "total": "200.00",
+                "unit_id": 6,
+                "package_id": 54,
+                "net_weight": "125.00",
+                "gross_weight": "275.00",
+                "total_package": 5,
+                "createdAt": "2025-03-07T04:25:29.000Z",
+                "updatedAt": "2025-03-07T04:25:29.000Z",
+                "Product": {
+                    "variants": [
+                        {
+                            "id": 1,
+                            "name": "childeren",
+                            "image": null
+                        },
+                        {
+                            "id": 2,
+                            "name": "mans",
+                            "image": null
+                        }
+                    ],
+                    "productName": "Boots"
+                },
+                "Unit": {
+                    "orderUnit": "LTR",
+                    "packingUnit": "KG"
+                }
+            },
+            {
+                "id": 4,
+                "quotation_id": 4,
+                "product_id": 5,
+                "variant_id": 1,
+                "quantity": "20.00",
+                "price": "10.00",
+                "total": "200.00",
+                "unit_id": 3,
+                "package_id": 52,
+                "net_weight": "220.00",
+                "gross_weight": "2550.00",
+                "total_package": 10,
+                "createdAt": "2025-03-07T04:25:29.000Z",
+                "updatedAt": "2025-03-07T04:25:29.000Z",
+                "Product": {
+                    "variants": [
+                        {
+                            "id": 1,
+                            "name": "childeren",
+                            "image": null
+                        },
+                        {
+                            "id": 2,
+                            "name": "mans",
+                            "image": null
+                        }
+                    ],
+                    "productName": "Boots"
+                },
+                "Unit": {
+                    "orderUnit": "JAR",
+                    "packingUnit": "TON"
+                }
+            },
+            {
+                "id": 5,
+                "quotation_id": 4,
+                "product_id": 6,
+                "variant_id": 2,
+                "quantity": "10.00",
+                "price": "5.00",
+                "total": "50.00",
+                "unit_id": 6,
+                "package_id": 53,
+                "net_weight": "1000.00",
+                "gross_weight": "1000.00",
+                "total_package": 10,
+                "createdAt": "2025-03-07T04:25:29.000Z",
+                "updatedAt": "2025-03-07T04:25:29.000Z",
+                "Product": {
+                    "variants": [
+                        {
+                            "id": 1,
+                            "name": "GREEN",
+                            "image": null
+                        },
+                        {
+                            "id": 2,
+                            "name": "RED",
+                            "image": null
+                        }
+                    ],
+                    "productName": "chilli"
+                },
+                "Unit": {
+                    "orderUnit": "LTR",
+                    "packingUnit": "KG"
+                }
+            }
+        ],
+        "Consignee": {
+            "name": "Maple Shipping Co.",
+            "address": "456 Queen St, Toronto, ON"
+        },
+        "Country": {
+            "country_name": "Germany"
+        },
+        "Port": {
+            "portName": "Port of Vancouver"
+        },
+        "Currency": {
+            "currency": "GBP"
+        }
+    }
+]    

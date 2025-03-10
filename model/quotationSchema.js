@@ -70,6 +70,10 @@ const quotationSchema = sequelize.define("Quotation", {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
     },
+    pdf_link : {
+        type : DataTypes.STRING,
+        allowNull : true
+    }
 }, {
     timestamps: true,
 });
