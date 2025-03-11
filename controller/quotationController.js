@@ -20,7 +20,7 @@ const {toWords} = pkg
 import dotenv from 'dotenv'
 dotenv.config()
 
-import { generateAndStorePDF } from '../Config/pdfGenerator.js';
+import { generateAndStorePDF,pdfRemover } from '../Config/pdfGenerator.js';
 
 import AWS from 'aws-sdk';
 import { S3Client, PutObjectCommand,GetObjectCommand  } from "@aws-sdk/client-s3";
@@ -346,8 +346,6 @@ export const getPDF = async(req,res) => {
 export const generatePDF = async(req,res) => {
     try{
         const { id } = req.params;
-        
-
         const generator = await generateAndStorePDF(id)
 
          res.json({ message: "PDF generated successfully", s3url : generator });
@@ -513,15 +511,16 @@ export const getSignedUrls = async (req, res) => {
             
             await quotationSchema.update({ pdf_link: pdfLink }, { where: { id } });
 
-            // Fetch the updated quotation
+            
             quotation = await quotationSchema.findOne({ where: { id } });
         }
 
-        // Extract file path from stored S3 URL
+        
         const fileUrl = new URL(quotation.pdf_link);
         const fileName = fileUrl.pathname.substring(1); // Removes leading '/'
 
-        // Generate a signed URL for secure access
+        console.log('filename : ',fileName)
+        
         const getObjectParams = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: fileName,
@@ -533,5 +532,29 @@ export const getSignedUrls = async (req, res) => {
     } catch (error) {
         console.error("Error getting signed URL:", error);
         res.status(500).json({ message: "Error getting signed URL" });
+    }
+};
+
+export const deleteQuotation = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const quotation = await quotationSchema.findOne({ where: { id } });
+
+        if (!quotation) {
+            return res.status(404).json({ message: "Quotation not found" });
+        }
+
+        if (quotation.pdf_link) {
+            await pdfRemover(quotation.pdf_link, id);  // Pass pdf_link directly
+        }
+
+        await quotationSchema.destroy({ where: { id } });
+
+        console.log('quotation is a removed')
+        return res.json({ message: "Quotation and PDF deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting quotation:", error);
+        res.status(500).json({ message: "Error deleting quotation" });
     }
 };

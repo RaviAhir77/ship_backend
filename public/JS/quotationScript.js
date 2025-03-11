@@ -75,10 +75,10 @@ document.querySelectorAll(".editBtn").forEach(button => {
             });
 
             quotationSelect.value = id;
-            quotationSelect.dispatchEvent(new Event("change")); // ✅ Force change event
+            quotationSelect.dispatchEvent(new Event("change"));
             console.log('quotation selection value:', quotationSelect.value);
 
-            // ✅ Show the form
+            
             document.getElementById("quotationFormContainer").classList.add("show");
 
         } catch (error) {
@@ -97,7 +97,7 @@ quotationSelect.addEventListener("change", function () {
     console.log('quotation id:', quotation);
 
     if (!quotation) {
-        alert("Quotation not found!"); // ❌ Previously this was happening
+        alert("Quotation not found!"); 
         return;
     }
 
@@ -264,3 +264,34 @@ document.querySelectorAll(".doc-icon").forEach(icon => {
 document.querySelector(".close").addEventListener("click", () => {
     document.getElementById("pdfModal").style.display = "none";
 });
+
+
+    const deleteButtons = document.querySelectorAll(".deleteBtn");
+
+    deleteButtons.forEach((button) => {
+        button.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+
+            // Confirm before deleting
+            const confirmDelete = confirm("Are you sure you want to delete this quotation?");
+            if (!confirmDelete) return;
+
+            try {
+                const response = await fetch(`/quotation/delete/${id}`, {
+                    method: "DELETE",
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // alert(result.message);
+                    location.reload(); // Reload the page to update the table
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error deleting quotation:", error);
+                alert("An error occurred. Please try again.");
+            }
+        });
+    }); 

@@ -22,7 +22,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import AWS from 'aws-sdk';
-import { S3Client, PutObjectCommand,GetObjectCommand  } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand,GetObjectCommand,DeleteObjectCommand  } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3 = new S3Client({
@@ -100,5 +100,31 @@ export const generateAndStorePDF = async (id) => {
     } catch (error) {
         console.error("Error generating and storing PDF:", error);
         return null;
+    }
+};
+
+export const pdfRemover = async (pdf_link, id) => {
+    try {
+        if (!pdf_link) {
+            console.log("No PDF found to delete.");
+            return;
+        }
+
+        const fileUrl = new URL(pdf_link);
+        const fileName = fileUrl.pathname.substring(1); // Extract file path
+
+        const deleteParams = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: fileName,
+        };
+
+        await s3.send(new DeleteObjectCommand(deleteParams));
+        console.log("PDF deleted from S3:", fileName);
+
+        await quotationSchema.update({ pdf_link: null }, { where: { id } });
+
+        console.log("PDF link from database.");
+    } catch (error) {
+        console.error("Error deleting PDF:", error);
     }
 };
