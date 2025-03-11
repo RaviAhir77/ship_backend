@@ -17,10 +17,12 @@ import ejs from 'ejs'
 import pkg from 'number-to-words';
 const {toWords} = pkg
 
+import ExcelJs from 'exceljs'
+
 import dotenv from 'dotenv'
 dotenv.config()
 
-import { generateAndStorePDF,pdfRemover } from '../Config/pdfGenerator.js';
+import { excelGenerator, generateAndStorePDF,pdfRemover } from '../Config/pdfGenerator.js';
 
 import AWS from 'aws-sdk';
 import { S3Client, PutObjectCommand,GetObjectCommand  } from "@aws-sdk/client-s3";
@@ -306,8 +308,8 @@ export const quotationCreate = async(req,res) => {
 // }
 
 export const getPDF = async(req,res) => {
-        const {id} = req.params
     try {
+        const {id} = req.params
         let quotations = await quotationSchema.findOne({
             where : {id},
             include: [
@@ -494,11 +496,9 @@ export const updateQuotation = async(req,res) => {
 export const getSignedUrls = async (req, res) => {
     try {
         const { id } = req.params;
-
-        
         let quotation = await quotationSchema.findOne({ where: { id } });
 
-        
+        //that handle first time store pdf in a database
         if (!quotation || !quotation.pdf_link) {
             console.log("PDF not found, generating new one...");
 
@@ -506,26 +506,20 @@ export const getSignedUrls = async (req, res) => {
 
             if (!pdfLink) {
                 return res.status(500).json({ message: "Failed to generate PDF" });
-            }
-
-            
-            await quotationSchema.update({ pdf_link: pdfLink }, { where: { id } });
-
-            
+            } 
+            await quotationSchema.update({ pdf_link: pdfLink }, { where: { id } });   
             quotation = await quotationSchema.findOne({ where: { id } });
         }
+        // const fileUrl = new URL(quotation.pdf_link);
+        // const fileName = fileUrl.pathname.substring(1); // Removes leading '/'
 
-        
-        const fileUrl = new URL(quotation.pdf_link);
-        const fileName = fileUrl.pathname.substring(1); // Removes leading '/'
+        const fileName = `quotations/Ravi_${id}.pdf` // < --- getting pdf with a unique name from direct S3
 
-        console.log('filename : ',fileName)
-        
+        console.log('filename : ',fileName)       
         const getObjectParams = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: fileName,
         };
-
         const signedUrl = await getSignedUrl(s3, new GetObjectCommand(getObjectParams), { expiresIn: 3600 });
 
         return res.json({ signedUrl });
@@ -546,7 +540,7 @@ export const deleteQuotation = async (req, res) => {
         }
 
         if (quotation.pdf_link) {
-            await pdfRemover(quotation.pdf_link, id);  // Pass pdf_link directly
+            await pdfRemover(quotation.pdf_link, id);  //that remove a pdf before quotation get deleted
         }
 
         await quotationSchema.destroy({ where: { id } });
@@ -558,3 +552,42 @@ export const deleteQuotation = async (req, res) => {
         res.status(500).json({ message: "Error deleting quotation" });
     }
 };
+
+export const generateExcel = async(req,res) => {
+    try {
+        const {id} = req.params;
+
+        const storeExcel = await excelGenerator(id)
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", `attachment; filename=quotation/Ravi_${id}.xlsx`);
+    
+
+        // await workbook.xlsx.write(res);
+        res.status(200).json({message : 'pdf is a stored in a s3',key : storeExcel});
+    
+    } catch (error) {
+        console.error("Error generating Excel:", error);
+        res.status(500).send("Error generating Excel file");
+    }
+}
+
+
+export const getExecl = async(req,res) => {
+    try {
+        const {id} = req.params;
+
+        const fileName = `quotations/Excel-Ravi_${id}.xlsx` 
+
+        console.log('filename : ',fileName)       
+        const getObjectParams = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: fileName,
+        };
+        const signedUrl = await getSignedUrl(s3, new GetObjectCommand(getObjectParams), { expiresIn: 60 * 60 });
+
+        res.json({ signedUrl });
+    } catch (error) {
+        console.log('problem in a getting signed url excel,',error)
+        res.status(500).json({ message: 'problem in a geting singedUrl of excel' });
+    }
+}

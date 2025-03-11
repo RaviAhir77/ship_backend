@@ -30,7 +30,7 @@ document.getElementById("quotationForm").addEventListener("submit", async functi
 
         const result = await response.json();
         if (response.ok) {
-            alert(isUpdate ? "Quotation updated successfully!" : "Quotation created successfully!");
+            // alert(isUpdate ? "Quotation updated successfully!" : "Quotation created successfully!");
             if (isUpdate) {
                 updateQuotationRow(result.quotation);
             } else {
@@ -121,7 +121,7 @@ quotationSelect.addEventListener("change", function () {
     const productContainer = document.getElementById("productContainer");
     productContainer.innerHTML = "";
 
-
+    console.log('log of a quotationProducts :',quotation.QuotationProducts)
     quotation.QuotationProducts.forEach(product => {
         const productBlock = document.createElement("div");
         productBlock.classList.add("product-block");
@@ -179,7 +179,6 @@ quotationSelect.addEventListener("change", function () {
     });
 
 });
-
 
 function addQuotationToTable(quotation) {
     
@@ -243,7 +242,7 @@ function updateQuotationRow(updatedQuotation) {
 document.querySelectorAll(".doc-icon").forEach(icon => {
     icon.addEventListener("click", async (event) => {
         const quotationId = event.target.getAttribute("data-id");
-
+        
         try {
             const response = await fetch(`/quotation/signUrl/${quotationId}`);
             const data = await response.json();
@@ -260,38 +259,109 @@ document.querySelectorAll(".doc-icon").forEach(icon => {
     });
 });
 
-// Close modal when clicking on the close button
+
 document.querySelector(".close").addEventListener("click", () => {
     document.getElementById("pdfModal").style.display = "none";
 });
 
+const deleteButtons = document.querySelectorAll(".deleteBtn");
 
-    const deleteButtons = document.querySelectorAll(".deleteBtn");
+deleteButtons.forEach((button) => {
+    button.addEventListener("click", async function () {
+        const id = this.getAttribute("data-id");
 
-    deleteButtons.forEach((button) => {
-        button.addEventListener("click", async function () {
-            const id = this.getAttribute("data-id");
+        // Confirm before deleting
+        const confirmDelete = confirm("Are you sure you want to delete this quotation?");
+        if (!confirmDelete) return;
 
-            // Confirm before deleting
-            const confirmDelete = confirm("Are you sure you want to delete this quotation?");
-            if (!confirmDelete) return;
+        try {
+            const response = await fetch(`/quotation/delete/${id}`, {
+                method: "DELETE",
+            });
 
-            try {
-                const response = await fetch(`/quotation/delete/${id}`, {
-                    method: "DELETE",
-                });
+            const result = await response.json();
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    // alert(result.message);
-                    location.reload(); // Reload the page to update the table
-                } else {
-                    alert("Error: " + result.message);
-                }
-            } catch (error) {
-                console.error("Error deleting quotation:", error);
-                alert("An error occurred. Please try again.");
+            if (response.ok) {
+                // alert(result.message);
+                location.reload(); // Reload the page to update the table
+            } else {
+                alert("Error: " + result.message);
             }
+        } catch (error) {
+            console.error("Error deleting quotation:", error);
+            alert("An error occurred. Please try again.");
+        }
+    });
+}); 
+
+
+//excel script
+document.querySelectorAll(".excelBtn").forEach(button => {
+    button.addEventListener("click", async function () {
+        const quotationId = this.getAttribute("data-id");
+
+        try {
+            // 🔹 Fetch Presigned Excel URL from the backend
+            const response = await fetch(`/quotation/signedExcel/${quotationId}`);
+            const data = await response.json();
+
+            console.log("Received response:", data);
+
+            if (data.signedUrl) {
+                const fileUrl = data.signedUrl;
+                const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(data.signedUrl)}`;
+                window.open(officeViewerUrl, "_blank");
+            } else {
+                alert("Failed to generate Excel link.");
+            }
+        } catch (error) {
+            console.error("Error fetching Excel URL:", error);
+        }
+    });
+});
+
+function openExcelViewer(url) {
+    let modal = document.getElementById("excelModal");
+    let iframe = document.getElementById("excelIframe");
+
+    if (!modal) {
+        // 🔹 Create Modal
+        modal = document.createElement("div");
+        modal.id = "excelModal";
+        modal.style.position = "fixed";
+        modal.style.top = "10%";
+        modal.style.left = "50%";
+        modal.style.transform = "translate(-50%, 0)";
+        modal.style.width = "80%";
+        modal.style.height = "80%";
+        modal.style.background = "#fff";
+        modal.style.border = "1px solid #ccc";
+        modal.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+        modal.style.zIndex = "1000";
+        modal.style.display = "flex";
+        modal.style.flexDirection = "column";
+
+        // Close Button
+        const closeButton = document.createElement("button");
+        closeButton.innerText = "Close";
+        closeButton.style.alignSelf = "flex-end";
+        closeButton.style.margin = "10px";
+        closeButton.addEventListener("click", () => {
+            document.body.removeChild(modal);
         });
-    }); 
+
+        // 🔹 Create Iframe
+        iframe = document.createElement("iframe");
+        iframe.id = "excelIframe";
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+
+        modal.appendChild(closeButton);
+        modal.appendChild(iframe);
+        document.body.appendChild(modal);
+    }
+
+    iframe.src = url;
+    modal.style.display = "block";
+}

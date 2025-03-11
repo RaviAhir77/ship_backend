@@ -35,6 +35,7 @@
                         </td>
                         <td>
                             <i class="doc-icon" data-id="<%= quotation.id %>" style="cursor: pointer;">📄</i>
+                            <button class="excelBtn" data-id="<%= quotation.id %>" style="cursor: pointer;">📊</button>
                         </td>
                         <td><%= quotation.id %></td>
                         <td><%= quotation.Consignee.name %></td>
@@ -68,4 +69,6 @@
             <iframe id="pdfFrame" width="100%" height="500px"></iframe>
         </div>
     </div>
+
+    <iframe id="excelIframe" width="100%" height="600px" style="border: none;"></iframe>
 </div>

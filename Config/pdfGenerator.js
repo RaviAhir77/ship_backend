@@ -18,6 +18,8 @@ import unitSchema from '../model/unitSchema.js';
 // import quotationSchema from '../model/quotationSchema.js';
 import quotationProductSchema from '../model/quotationProductSchema.js';
 
+import ExcelJs from 'exceljs'
+
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -128,3 +130,271 @@ export const pdfRemover = async (pdf_link, id) => {
         console.error("Error deleting PDF:", error);
     }
 };
+
+export const excelGenerator = async(id) => {
+    try{
+        let quotations = await quotationSchema.findOne({
+            where : {id},
+            include: [
+                {
+                    model: quotationProductSchema,
+                    include: [
+                        { model: productSchema, attributes: ['productName','variants'] },
+                        { model: unitSchema, attributes: ['orderUnit','packingUnit'] },
+                    ],
+                   
+                },
+                { model: consigneeSchema, attributes: ['name','address'] }, // Fetch consignee name
+                { model: countrySchema, attributes: ['country_name'] }, // Fetch country name
+                { model: portSchema, attributes: ['portName'] }, // Fetch port name
+                { model: currencySchema, attributes: ['currency'] },
+            ],
+        });
+
+        const quotationData = quotations.toJSON();
+
+        // ✅ Calculate total quantity
+        quotationData.totalQuantity = quotationData.QuotationProducts.reduce((sum, product) => {
+            return sum + parseFloat(product.quantity);
+        }, 0);
+
+        // ✅ Keep the original number and also store words
+        quotationData.total_native_words = toWords(Number(quotationData.total_native)) + " " + quotationData.Currency.currency + " ONLY"; // In words
+
+        quotations = quotationData;
+    
+        // Create a new Excel workbook
+        const workbook = new ExcelJs.Workbook();
+        const worksheet = workbook.addWorksheet("Quotation");
+    
+        // Header Information
+        const headerRows = [
+            ["QUOTATION NO.", quotations.id],
+            ["DATE", quotations.date],
+            [""], // Empty row for spacing
+            ["EXPORTER", "TEST SERVER"],
+            ["CONSIGNEE", quotations.Consignee?.name || "N/A"],
+            ["CONSIGNEE ADDRESS", quotations.Consignee?.address || "N/A"],
+        ];
+        
+        // Add rows with styles
+        headerRows.forEach((rowData) => {
+            const row = worksheet.addRow(rowData);
+        
+            row.eachCell((cell, colNumber) => {
+                // Apply border to all cells
+                cell.border = {
+                    top: { style: "thin" },
+                    left: { style: "thin" },
+                    bottom: { style: "thin" },
+                    right: { style: "thin" }
+                };
+        
+                if (colNumber === 1) {
+                    cell.font = { bold: true, size: 12 };
+                    cell.alignment = { vertical: "middle", horizontal: "left" };
+        
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "D9E1F2" } 
+                    };
+                } else {
+                    
+                    cell.alignment = { horizontal: "left" };
+                    cell.font = { size: 12 };
+                }
+            });
+        });
+        
+        worksheet.addRow([]);
+    
+        // Table Headers
+        worksheet.addRow([
+          "SR. NO.", "MARKING", "NO. OF PACKAGES", "QTY. TOTAL", "NET W.T.", "GROSS W.T.", 
+          `RATE (${quotations.Currency?.currency || "N/A"})`, 
+          `TOTAL (${quotations.Currency?.currency || "N/A"})`
+        ]).eachCell(cell => {
+            cell.font = { bold: true, color: { argb: "FFFFFF" } }; // White text
+            cell.fill = { 
+                type: "pattern", 
+                pattern: "solid", 
+                fgColor: { argb: "4F81BD" }
+            };
+            cell.alignment = { horizontal: "center" }; 
+            cell.border = { 
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+            }; });
+    
+        // Add Product Rows
+        quotations.QuotationProducts.forEach((product, index) => {
+          let variantName = "";
+          if (product.variant_id) {
+            let variant = product.Product.variants.find(v => v.id === product.variant_id);
+            if (variant) {
+              variantName = " - " + variant.name;
+            }
+          }
+    
+          const quotationProductRow = worksheet.addRow([
+            index + 1,
+            product.Product.productName + variantName,
+            product.total_package,
+            `${product.quantity} ${product.Unit?.orderUnit || ""}`,
+            `${product.net_weight} ${product.Unit?.packingUnit || ""}`,
+            `${product.gross_weight} ${product.Unit?.packingUnit || ""}`,
+            product.price,
+            product.total
+          ]);
+
+          quotationProductRow.eachCell((cell, colNumber) => {
+            cell.font = { size: 12 }; // Regular font size
+            cell.alignment = { horizontal: "center", vertical: "middle" }; // Center text
+            cell.border = { // Add border to each cell
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+            };
+    
+           
+            if (index % 2 === 0) { 
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "F2F2F2" } // Light Gray
+                };
+            } else { // Odd rows (White)
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FFFFFF" } // White
+                };
+            }
+        });
+        });
+    
+        
+        worksheet.addRow([]);
+        const subtotalRow = worksheet.addRow(["", "", "","TOTAL QTY.", "","", "SUBTOTAL", quotations.total_native]);
+        subtotalRow.eachCell((cell, colNumber) => {
+            styleCell(cell, colNumber);
+        });
+
+        // Row 2 - Discount
+        const discountRow = worksheet.addRow(["", "", "", quotations.totalQuantity, "","", "DISCOUNT", "0 %"]);
+        discountRow.eachCell((cell, colNumber) => {
+            styleCell(cell, colNumber);
+        });
+
+        
+        const totalFobRow = worksheet.addRow(["", "", "", "", "", "", "TOTAL FOB", quotations.total_native]);
+        totalFobRow.eachCell((cell, colNumber) => {
+            styleCell(cell, colNumber);
+        });
+
+        
+        function styleCell(cell, colNumber) {
+            cell.font = { bold: true, size: 12 };
+            cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+            cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+            };
+
+            if (colNumber === 4 || colNumber === 7) {
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FFFF99" } // Light Yellow
+                };
+            }
+        }
+        
+    
+        const totalWeightSection = [
+            ["Total Net Weight", quotations.totalNetWeight],
+            ["Total Gross Weight", quotations.totalGrossWeight],
+            ["Amount in Words", quotations.total_native_words]
+        ];
+        
+        // Add rows and apply styles
+        totalWeightSection.forEach((rowData) => {
+            const row = worksheet.addRow(rowData);
+            
+            row.eachCell((cell, colNumber) => {
+                // Apply border to all cells
+                cell.border = {
+                    top: { style: "thin" },
+                    left: { style: "thin" },
+                    bottom: { style: "thin" },
+                    right: { style: "thin" }
+                };
+        
+                // Apply blue background **only to the first column (labels)**
+                if (colNumber === 1) {
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "4F81BD" } // Blue color
+                    };
+                    cell.font = { color: { argb: "FFFFFF" }, bold: true }; // White text & bold
+                } else {
+                    // Normal text for the second column
+                    cell.font = { bold: true };
+                }
+            });
+        });
+    
+        // Format and Auto-size Columns
+        worksheet.columns.forEach(column => {
+          column.width = 20; // Adjust column width
+        });
+
+        const totalRows = worksheet.rowCount;
+        const totalCols = 8; 
+
+        
+        for (let rowNumber = 1; rowNumber <= totalRows; rowNumber++) {
+            const row = worksheet.getRow(rowNumber);
+
+            for (let colNumber = 1; colNumber <= totalCols; colNumber++) {
+                const cell = row.getCell(colNumber);
+
+                // Apply thick border only to the outermost cells
+                if (rowNumber === 1 || rowNumber === totalRows || colNumber === 1 || colNumber === totalCols) {
+                    cell.border = {
+                        top: rowNumber === 1 ? { style: "thin" } : { style: "thin" },
+                        left: colNumber === 1 ? { style: "thin" } : { style: "thin" },
+                        bottom: rowNumber === totalRows ? { style: "thin" } : { style: "thin" },
+                        right: colNumber === totalCols ? { style: "thin" } : { style: "thin" }
+                    };
+                }
+            }
+        }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        const params = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: `quotations/Excel-Ravi_${quotations.id}.xlsx`,
+            Body: buffer,
+            ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",    
+        };
+        
+        await s3.send(new PutObjectCommand(params));
+        
+        // Construct the S3 URL
+        const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${params.Key}`;
+        
+        return fileUrl;
+    } catch(error){
+        console.log('error in a generating excel', error)
+        return null
+    }
+}
