@@ -596,27 +596,30 @@ export const getExecl = async(req,res) => {
 export const mailSender = async(req,res) => {
     try{
         const {id} = req.params;
-        const { receiverEmail, ccEmail, replyToEmail, emailSubject, emailContent } = req.body;
+        const { receiverEmail, ccEmail, replyToEmail, emailSubject, emailContent, emailAttachment } = req.body;
 
         console.log('id :',id);
         console.log('req body log :',req.body)
 
-
+        // if (!emailAttachment) {
+        //     return res.status(400).json({ message: "Attachment URL is missing" });
+        // }
         const pdfBuffer = await simplePdfGenerator(id);
         if (!pdfBuffer) {
             return res.status(500).json({ message: 'Failed to generate PDF' });
         }
         
-        const result = await sendMail({ 
-            receiverEmail, 
-            ccEmail, 
-            replyToEmail, 
-            emailSubject, 
-            emailContent, 
-            emailAttachment : {
-                filename : `quotation/Ravi_${id}.pdf`,
-                content : pdfBuffer
-            } });
+        const result = await sendMail({
+            receiverEmail,
+            ccEmail,
+            replyToEmail,
+            emailSubject,
+            emailContent ,
+            emailAttachment: {
+                filename: `quotation/Ravi_${id}.pdf`,
+                content : pdfBuffer, // Use the signed URL instead of a file buffer
+            }
+        });
 
         if (result.success) {
             res.status(200).json({ message: 'Email sent successfully' });

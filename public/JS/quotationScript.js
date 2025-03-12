@@ -398,7 +398,7 @@ const sendMailPopup = document.getElementById("sendMailPopup");
 const overlay = document.getElementById("overlay");
 const sendMailForm = document.getElementById("sendMailForm");
 
-let quotationId = null; 
+// let quotationId = null; 
 
 // Open Popup and Get ID
 document.querySelectorAll(".sendMailBtn").forEach(button => {
@@ -416,24 +416,105 @@ overlay.addEventListener("click", function () {
 });
 
 // Handle Form Submission
-sendMailForm.addEventListener("submit", async function (event) {
-    event.preventDefault(); // Prevent default form submission
+// sendMailForm.addEventListener("submit", async function (event) {
+//     event.preventDefault(); // Prevent default form submission
 
-    console.log('quotation id in a send mail',quotationId)
+//     console.log('quotation id in a send mail',quotationId)
+//     if (!quotationId) {
+//         alert("Quotation ID not found!");
+//         return;
+//     }
+
+//     const formData = new FormData(sendMailForm);
+//     const jsonObject = {};
+//     formData.forEach((value, key) => {
+//         jsonObject[key] = value;
+//     });
+
+//     console.log("Converted JSON data:", jsonObject);
+
+//     // console.log('formDatat :' , formData)
+
+//     try {
+//         const response = await fetch(`/quotation/sendEmail/${quotationId}`, {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json"
+//             },
+//             body: JSON.stringify(jsonObject)
+//         });
+
+//         const result = await response.json();
+
+//         console.log('json response :', result)
+//         if (response.ok) {
+//             alert("Email Sent Successfully!");
+//             sendMailPopup.classList.remove("show");
+//             overlay.classList.remove("show");
+//         } else {
+//             alert("Error: " + result.message);
+//         }
+//     } catch (error) {
+//         console.error("Error sending email:", error);
+//         alert("Failed to send email.");
+//     }
+// });
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".sendMailBtn").forEach((button) => {
+        button.addEventListener("click", async function () {
+            const quotationId = this.dataset.id; // Get the ID from the clicked button
+            console.log("Clicked Quotation ID:", quotationId);
+
+            if (!quotationId) return;
+
+            try {
+                const response = await fetch(`/quotation/signUrl/${quotationId}`);
+                const result = await response.json();
+
+                if (response.ok && result.signedUrl) {
+                    // Remove file input
+                    const fileInputContainer = document.getElementById("emailAttachmentContainer");
+                    if (fileInputContainer) {
+                        const fileName = `quotation/Ravi_${quotationId}.pdf`;
+                        fileInputContainer.innerHTML = `
+                            <label for="emailAttachmentUrl">Attachment (Generated PDF):</label>
+                            <input type="text" id="emailAttachmentUrl" name="emailAttachmentUrl" value="${result.signedUrl}" hidden>
+                            <a href="${result.signedUrl}" target="_blank" id="viewPdfBtn">📄 ${fileName}</a>
+                        `;
+                    }
+
+                    // Store quotationId for form submission
+                    sendMailForm.dataset.quotationId = quotationId;
+                } else {
+                    console.error("Failed to get signed URL");
+                }
+            } catch (error) {
+                console.error("Error fetching signed URL:", error);
+            }
+        });
+    });
+});
+
+// Form submission - Send URL instead of file
+sendMailForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const quotationId = sendMailForm.dataset.quotationId; // Get stored ID
+    console.log("Submitting Quotation ID:", quotationId);
+
     if (!quotationId) {
         alert("Quotation ID not found!");
         return;
     }
 
     const formData = new FormData(sendMailForm);
+    formData.append("emailAttachmentUrl", document.getElementById("emailAttachmentUrl").value);
+
     const jsonObject = {};
     formData.forEach((value, key) => {
         jsonObject[key] = value;
     });
-    
-    console.log("Converted JSON data:", jsonObject);
-
-    // console.log('formDatat :' , formData)
 
     try {
         const response = await fetch(`/quotation/sendEmail/${quotationId}`, {
@@ -445,8 +526,6 @@ sendMailForm.addEventListener("submit", async function (event) {
         });
 
         const result = await response.json();
-
-        console.log('json response :', result)
         if (response.ok) {
             alert("Email Sent Successfully!");
             sendMailPopup.classList.remove("show");
