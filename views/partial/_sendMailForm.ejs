@@ -23,7 +23,14 @@
             <textarea id="emailContent" name="emailContent">type your message here ...</textarea>
         </div>
         <div id="emailAttachmentContainer">
-            
+            <label for="emailAttachmentUrl">Attachment (Generated PDF URL):</label>
+            <input type="hidden" id="emailAttachmentUrl" name="emailAttachmentUrl">
+            <a href="#" id="viewPdfBtn">📄 quotation_Ravi_4.pdf</a>
+        </div>
+
+        <div>
+            <label for="emailAttachment">Attach File (Optional):</label>
+            <input type="file" id="emailAttachment" name="emailAttachments" multiple>
         </div>
         <button type="submit">Send Email</button>
     </form>

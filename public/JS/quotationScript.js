@@ -460,78 +460,86 @@ overlay.addEventListener("click", function () {
 //     }
 // });
 
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".sendMailBtn").forEach((button) => {
-        button.addEventListener("click", async function () {
-            const quotationId = this.dataset.id; // Get the ID from the clicked button
-            console.log("Clicked Quotation ID:", quotationId);
+document.querySelectorAll(".sendMailBtn").forEach((button) => {
+    button.addEventListener("click", async function () {
+        const quotationId = this.dataset.id;
+        console.log("Clicked Quotation ID:", quotationId);
 
-            if (!quotationId) return;
+        if (!quotationId) return;
 
-            try {
-                const response = await fetch(`/quotation/signUrl/${quotationId}`);
-                const result = await response.json();
+        try {
+            const response = await fetch(`/quotation/signUrl/${quotationId}`);
+            const result = await response.json();
 
-                if (response.ok && result.signedUrl) {
-                    // Remove file input
-                    const fileInputContainer = document.getElementById("emailAttachmentContainer");
-                    if (fileInputContainer) {
-                        const fileName = `quotation/Ravi_${quotationId}.pdf`;
-                        fileInputContainer.innerHTML = `
-                            <label for="emailAttachmentUrl">Attachment (Generated PDF):</label>
-                            <input type="text" id="emailAttachmentUrl" name="emailAttachmentUrl" value="${result.signedUrl}" hidden>
-                            <a href="${result.signedUrl}" target="_blank" id="viewPdfBtn">📄 ${fileName}</a>
-                        `;
-                    }
-
-                    // Store quotationId for form submission
-                    sendMailForm.dataset.quotationId = quotationId;
-                } else {
-                    console.error("Failed to get signed URL");
+            if (response.ok && result.signedUrl) {
+                const emailAttachmentUrlInput = document.getElementById("emailAttachmentUrl");
+                const viewPdfBtn = document.getElementById("viewPdfBtn");
+            
+                if (emailAttachmentUrlInput && viewPdfBtn) {
+                    // Store the URL in a hidden input (not visible to users)
+                    emailAttachmentUrlInput.value = result.signedUrl;
+            
+                    // Keep user-friendly file name
+                    viewPdfBtn.textContent = `📄 quotation_Ravi_${quotationId}.pdf`;
+            
+                    // Open the PDF when clicking the link
+                    viewPdfBtn.addEventListener("click", function (event) {
+                        event.preventDefault(); // Prevent default link behavior
+                        window.open(emailAttachmentUrlInput.value, "_blank");
+                    });
                 }
-            } catch (error) {
-                console.error("Error fetching signed URL:", error);
+            
+                // Store quotationId for form submission
+                sendMailForm.dataset.quotationId = quotationId;
+            } else {
+                console.error("Failed to get signed URL");
             }
-        });
+        } catch (error) {
+            console.error("Error fetching signed URL:", error);
+        }
     });
 });
 
-// Form submission - Send URL instead of file
+
 sendMailForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const quotationId = sendMailForm.dataset.quotationId; // Get stored ID
-    console.log("Submitting Quotation ID:", quotationId);
-
+    const quotationId = sendMailForm.dataset.quotationId;
     if (!quotationId) {
         alert("Quotation ID not found!");
         return;
     }
 
     const formData = new FormData(sendMailForm);
-    formData.append("emailAttachmentUrl", document.getElementById("emailAttachmentUrl").value);
 
-    const jsonObject = {};
-    formData.forEach((value, key) => {
-        jsonObject[key] = value;
-    });
+    
+    // const generatedPdfUrl = document.getElementById("emailAttachmentUrl")?.value;
+    // if (generatedPdfUrl) {
+    //     formData.append("emailAttachmentUrl", generatedPdfUrl);
+    // }
 
     try {
         const response = await fetch(`/quotation/sendEmail/${quotationId}`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(jsonObject)
+            body: formData,
         });
 
-        const result = await response.json();
-        if (response.ok) {
-            alert("Email Sent Successfully!");
-            sendMailPopup.classList.remove("show");
-            overlay.classList.remove("show");
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const result = await response.json();
+            if (response.ok) {
+                alert("Email Sent Successfully!");
+                sendMailPopup.classList.remove("show");
+                overlay.classList.remove("show");
+            } else {
+                alert("Error: " + result.message);
+            }
         } else {
-            alert("Error: " + result.message);
+            // Log non-JSON response
+            const text = await response.text();
+            console.error("Unexpected response:", text);
+            alert("Unexpected response from server.");
         }
     } catch (error) {
         console.error("Error sending email:", error);

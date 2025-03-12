@@ -594,40 +594,63 @@ export const getExecl = async(req,res) => {
 }
 
 export const mailSender = async(req,res) => {
-    try{
-        const {id} = req.params;
-        const { receiverEmail, ccEmail, replyToEmail, emailSubject, emailContent, emailAttachment } = req.body;
+    try {
+        const { id } = req.params;
+        const { receiverEmail, ccEmail, replyToEmail, emailSubject, emailContent } = req.body;
 
-        console.log('id :',id);
-        console.log('req body log :',req.body)
+        console.log("ID:", id);
+        console.log("Request body:", req.body);
+        console.log("Uploaded files:", req.files);
 
-        // if (!emailAttachment) {
-        //     return res.status(400).json({ message: "Attachment URL is missing" });
-        // }
+        let attachments = [];
+
         const pdfBuffer = await simplePdfGenerator(id);
         if (!pdfBuffer) {
-            return res.status(500).json({ message: 'Failed to generate PDF' });
+            return res.status(500).json({ message: "Failed to generate PDF" });
         }
-        
+
+        attachments.push({
+            filename: `quotation_Ravi_${id}.pdf`,
+            content: pdfBuffer,
+        });
+
+        // **2️⃣ Include user-uploaded PDFs**
+        if (req.files && req.files.length > 0) {
+            req.files.forEach((file) => {
+                attachments.push({
+                    filename: file.originalname,
+                    path: file.path, // Path to uploaded file
+                });
+            });
+        }
+
+        // Send email with attachments
         const result = await sendMail({
             receiverEmail,
             ccEmail,
             replyToEmail,
             emailSubject,
-            emailContent ,
-            emailAttachment: {
-                filename: `quotation/Ravi_${id}.pdf`,
-                content : pdfBuffer, // Use the signed URL instead of a file buffer
-            }
+            emailContent,
+            emailAttachments: attachments,
         });
 
         if (result.success) {
-            res.status(200).json({ message: 'Email sent successfully' });
+            if (req.files && req.files.length > 0) {  // ✅ Check if files exist
+                req.files.forEach((file) => {
+                    if (fs.existsSync(file.path)) {   // ✅ Check if file exists before deleting
+                        fs.unlinkSync(file.path);
+                        console.log(`Deleted file: ${file.path}`);
+                    } else {
+                        console.warn(`File not found, skipping delete: ${file.path}`);
+                    }
+                });
+            }
+            res.status(200).json({ message: "Email sent successfully" });
         } else {
-            res.status(500).json({ message: 'Error sending email', error: result.error });
+            res.status(500).json({ message: "Error sending email", error: result.error });
         }
-    }catch(error){
-        console.log('fail to send a pdf in a mail :',error)
-        res.status(500).json({ message: 'fail to send quotation in a mail :',error });
+    } catch (error) {
+        console.error("Failed to send email:", error);
+        res.status(500).json({ message: "Failed to send email", error });
     }
 }

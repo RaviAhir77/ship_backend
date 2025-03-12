@@ -1,5 +1,6 @@
 import { getform, quotationCreate,getPDF,generatePDF,updateQuotation, getById, getSignedUrls, deleteQuotation, generateExcel, getExecl, mailSender } from '../controller/quotationController.js';
 import express from 'express';
+import { uploadMultipleFiles } from '../Config/multer.js';
 
 const quotationRouter = express.Router();
 
@@ -14,7 +15,7 @@ quotationRouter.get('/quotation/signUrl/:id',getSignedUrls)
 quotationRouter.delete('/quotation/delete/:id',deleteQuotation)
 quotationRouter.get('/quotation/excel/:id',generateExcel)
 quotationRouter.get('/quotation/signedExcel/:id',getExecl)
-quotationRouter.post('/quotation/sendEmail/:id',mailSender)
+quotationRouter.post('/quotation/sendEmail/:id',uploadMultipleFiles,mailSender)
 
 
 export default quotationRouter;

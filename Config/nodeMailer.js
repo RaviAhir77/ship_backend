@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import path from 'path'
 dotenv.config();
 
-async function sendMail({ receiverEmail, ccEmail, replyToEmail, emailSubject, emailContent, emailAttachment }) {
+async function sendMail({ receiverEmail, ccEmail, replyToEmail, emailSubject, emailContent, emailAttachments }) {
     try {
         let transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -20,10 +20,7 @@ async function sendMail({ receiverEmail, ccEmail, replyToEmail, emailSubject, em
             replyTo: replyToEmail || undefined,
             subject: emailSubject,
             text: emailContent, 
-            attachments: emailAttachment ? [{
-                filename: emailAttachment.filename,
-                content: emailAttachment.content 
-            }] : []
+            attachments: emailAttachments || []
         };
 
         let info = await transporter.sendMail(mailOptions);
