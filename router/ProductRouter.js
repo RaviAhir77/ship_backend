@@ -13,6 +13,6 @@ productRouter.get('/find-all',getallProduct)
 productRouter.get('/edit/:id',getEditProduct);
 productRouter.get('/dropdown',dropDownHandler)
 productRouter.post('/update/:id',upload.array('productImage',2),updateProduct)
-productRouter.post('/delete/:id',deleteProduct)
+productRouter.post('/delete/:id',deleteProduct);
 
 export default productRouter;

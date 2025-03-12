@@ -291,3 +291,41 @@ button:hover {
     font-size: 24px;
     cursor: pointer;
 }
+
+
+/* ------------------ mail send form ------------- */
+
+/* Hide the form by default */
+#sendMailPopup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    width: 400px;
+}
+
+/* Show the form when the "show" class is added */
+#sendMailPopup.show {
+    display: block;
+}
+
+/* Overlay to darken background */
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Show overlay when active */
+#overlay.show {
+    display: block;
+}

@@ -1,0 +1,32 @@
+<div id="overlay"></div>
+
+<div id="sendMailPopup">
+    <form id="sendMailForm" action="/send-mail" method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="emailSubject">Subject:</label>
+            <input type="text" id="emailSubject" name="emailSubject" required>
+        </div>
+        <div>
+            <label for="receiverEmail">To:</label>
+            <input type="email" id="receiverEmail" name="receiverEmail" required>
+        </div>
+        <div>
+            <label for="ccEmail">CC:</label>
+            <input type="email" id="ccEmail" name="ccEmail">
+        </div>
+        <div>
+            <label for="replyToEmail">Reply-To:</label>
+            <input type="email" id="replyToEmail" name="replyToEmail">
+        </div>
+        <div>
+            <label for="emailContent">Message:</label>
+            <textarea id="emailContent" name="emailContent">type your message here ...</textarea>
+        </div>
+        <div>
+            <label for="emailAttachment">Attachment (Generated PDF):</label>
+            <input type="file" id="emailAttachment" name="emailAttachment" accept="application/pdf">
+        </div>
+        <button type="submit">Send Email</button>
+    </form>
+</div>
+

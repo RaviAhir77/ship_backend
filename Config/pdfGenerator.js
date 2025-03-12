@@ -19,6 +19,10 @@ import unitSchema from '../model/unitSchema.js';
 import quotationProductSchema from '../model/quotationProductSchema.js';
 
 import ExcelJs from 'exceljs'
+// import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -133,6 +137,9 @@ export const pdfRemover = async (pdf_link, id) => {
 
 export const excelGenerator = async(id) => {
     try{
+
+        const logoPath = path.join(__dirname, 'public', 'Asset', 'Untitled.jpg');
+
         let quotations = await quotationSchema.findOne({
             where : {id},
             include: [
@@ -166,23 +173,41 @@ export const excelGenerator = async(id) => {
         // Create a new Excel workbook
         const workbook = new ExcelJs.Workbook();
         const worksheet = workbook.addWorksheet("Quotation");
-    
+
+        const imageId = workbook.addImage({
+            filename: logoPath,
+            extension: 'jpeg', // or 'png'
+        });
+        
+        worksheet.addImage(imageId, {
+            tl: { col: 0.1, row: 0.2 },  // Top-left corner
+            ext: { width: 130, height: 70 },  // Image size
+            editAs : 'oneCell'
+        });
+
+        worksheet.mergeCells('A1:A3');
+        
         // Header Information
-        const headerRows = [
+        const leftHeaderRows = [
             ["QUOTATION NO.", quotations.id],
             ["DATE", quotations.date],
-            [""], // Empty row for spacing
+            // [""], // Empty row for spacing
+        ];
+        
+        const rightHeaderRows = [
             ["EXPORTER", "TEST SERVER"],
             ["CONSIGNEE", quotations.Consignee?.name || "N/A"],
             ["CONSIGNEE ADDRESS", quotations.Consignee?.address || "N/A"],
         ];
         
         // Add rows with styles
-        headerRows.forEach((rowData) => {
-            const row = worksheet.addRow(rowData);
+        leftHeaderRows.forEach((rowData, index) => {
+            const row = worksheet.getRow(index + 1);
+            
+            row.getCell(3).value = rowData[0]; // Column D
+            row.getCell(4).value = rowData[1]; // Column E
         
             row.eachCell((cell, colNumber) => {
-                // Apply border to all cells
                 cell.border = {
                     top: { style: "thin" },
                     left: { style: "thin" },
@@ -190,21 +215,53 @@ export const excelGenerator = async(id) => {
                     right: { style: "thin" }
                 };
         
-                if (colNumber === 1) {
-                    cell.font = { bold: true, size: 12 };
+                if (colNumber === 3) {
+                    cell.font = { bold: true, size: 12, color: { argb: "000000" } };
                     cell.alignment = { vertical: "middle", horizontal: "left" };
-        
                     cell.fill = {
                         type: "pattern",
                         pattern: "solid",
-                        fgColor: { argb: "D9E1F2" } 
+                        fgColor: { argb: "D9E1F2" }
                     };
-                } else {
-                    
-                    cell.alignment = { horizontal: "left" };
-                    cell.font = { size: 12 };
+                } else if (colNumber === 4) {
+                    cell.alignment = { vertical: "middle", horizontal: "left" };
+                    cell.font = { size: 12, color: { argb: "000000" } };
                 }
             });
+        
+            row.height = 20;
+        });
+        
+        // Add right side headers in columns G & H
+        rightHeaderRows.forEach((rowData, index) => {
+            const row = worksheet.getRow(index + 1);
+            
+            row.getCell(6).value = rowData[0]; // Column G
+            row.getCell(7).value = rowData[1]; // Column H
+        
+            row.eachCell((cell, colNumber) => {
+                cell.border = {
+                    top: { style: "thin" },
+                    left: { style: "thin" },
+                    bottom: { style: "thin" },
+                    right: { style: "thin" }
+                };
+        
+                if (colNumber === 6) {
+                    cell.font = { bold: true, size: 12, color: { argb: "000000" } };
+                    cell.alignment = { vertical: "middle", horizontal: "left" };
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "D9E1F2" }
+                    };
+                } else if (colNumber === 7) {
+                    cell.alignment = { vertical: "middle", horizontal: "left" };
+                    cell.font = { size: 12, color: { argb: "000000" } };
+                }
+            });
+        
+            row.height = 20;
         });
         
         worksheet.addRow([]);
@@ -396,5 +453,56 @@ export const excelGenerator = async(id) => {
     } catch(error){
         console.log('error in a generating excel', error)
         return null
+    }
+}
+
+export const simplePdfGenerator = async(id) => {
+    try {
+        let quotations = await quotationSchema.findOne({
+            where: { id }, 
+            include: [
+                {
+                    model: quotationProductSchema,
+                    include: [
+                        { model: productSchema, attributes: ['productName', 'variants'] },
+                        { model: unitSchema, attributes: ['orderUnit', 'packingUnit'] },
+                    ],
+                },
+                { model: consigneeSchema, attributes: ['name','address'] },
+                { model: countrySchema, attributes: ['country_name'] },
+                { model: portSchema, attributes: ['portName'] },
+                { model: currencySchema, attributes: ['currency'] },
+            ],
+        });
+
+        if (!quotations) {
+            return res.status(404).json({ message: 'Quotation not found' });
+        }
+
+        const quotationData = quotations.toJSON();
+
+        
+        quotationData.totalQuantity = quotationData.QuotationProducts.reduce((sum, product) => {
+            return sum + parseFloat(product.quantity);
+        }, 0);
+
+        
+        quotationData.total_native_words = toWords(Number(quotationData.total_native)) + " " + quotationData.Currency.currency + " ONLY"; // In words
+
+        // Generate HTML content from EJS
+        const ejsTemplate = fs.readFileSync(path.join(__dirname, "views/pdf.ejs"), "utf-8");
+        const htmlContent = ejs.render(ejsTemplate, { quotations: quotationData });
+
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+        await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+        const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+        await browser.close();
+
+        return pdfBuffer
+    }catch(error){
+        console.log('error in a generating a simple pdf : ',error)
+        return null;
     }
 }

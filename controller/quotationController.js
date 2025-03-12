@@ -8,6 +8,7 @@ import productSchema from '../model/productSchema.js';
 import unitSchema from '../model/unitSchema.js';
 import quotationSchema from '../model/quotationSchema.js';
 import quotationProductSchema from '../model/quotationProductSchema.js';
+import sendMail from '../Config/nodeMailer.js';
 
 import fs from 'fs'
 import path from 'path';
@@ -22,7 +23,7 @@ import ExcelJs from 'exceljs'
 import dotenv from 'dotenv'
 dotenv.config()
 
-import { excelGenerator, generateAndStorePDF,pdfRemover } from '../Config/pdfGenerator.js';
+import { excelGenerator, generateAndStorePDF,pdfRemover, simplePdfGenerator } from '../Config/pdfGenerator.js';
 
 import AWS from 'aws-sdk';
 import { S3Client, PutObjectCommand,GetObjectCommand  } from "@aws-sdk/client-s3";
@@ -589,5 +590,41 @@ export const getExecl = async(req,res) => {
     } catch (error) {
         console.log('problem in a getting signed url excel,',error)
         res.status(500).json({ message: 'problem in a geting singedUrl of excel' });
+    }
+}
+
+export const mailSender = async(req,res) => {
+    try{
+        const {id} = req.params;
+        const { receiverEmail, ccEmail, replyToEmail, emailSubject, emailContent } = req.body;
+
+        console.log('id :',id);
+        console.log('req body log :',req.body)
+
+
+        const pdfBuffer = await simplePdfGenerator(id);
+        if (!pdfBuffer) {
+            return res.status(500).json({ message: 'Failed to generate PDF' });
+        }
+        
+        const result = await sendMail({ 
+            receiverEmail, 
+            ccEmail, 
+            replyToEmail, 
+            emailSubject, 
+            emailContent, 
+            emailAttachment : {
+                filename : `quotation/Ravi_${id}.pdf`,
+                content : pdfBuffer
+            } });
+
+        if (result.success) {
+            res.status(200).json({ message: 'Email sent successfully' });
+        } else {
+            res.status(500).json({ message: 'Error sending email', error: result.error });
+        }
+    }catch(error){
+        console.log('fail to send a pdf in a mail :',error)
+        res.status(500).json({ message: 'fail to send quotation in a mail :',error });
     }
 }

@@ -6,6 +6,32 @@ document.getElementById("closeFormBtn").addEventListener("click", function() {
     document.getElementById("quotationFormContainer").classList.remove("show");
 });
 
+// ----------------popup mail sender----------- 
+// const sendMailPopup = document.getElementById("sendMailPopup");
+// const overlay = document.getElementById("overlay");
+
+// // Open Popup
+// document.querySelectorAll(".sendMailBtn").forEach(button => {
+//     button.addEventListener("click", function () {
+//         sendMailPopup.classList.add("show");
+//         overlay.classList.add("show");
+//     });
+// });
+
+// // Close Popup
+// document.getElementById("closeFormBtn").addEventListener("click", function () {
+//     sendMailPopup.classList.remove("show");
+//     overlay.classList.remove("show");
+// });
+
+// // Close when clicking outside the popup
+// overlay.addEventListener("click", function () {
+//     sendMailPopup.classList.remove("show");
+//     overlay.classList.remove("show");
+// });
+
+// -----------------------
+
 const form = document.getElementById("quotationForm");
 const tableBody = document.querySelector(".quotation-table tbody"); 
 const quotationIdField = document.getElementById("quotation_id");
@@ -365,3 +391,71 @@ function openExcelViewer(url) {
     iframe.src = url;
     modal.style.display = "block";
 }
+
+// -------------- mail send javascript ---------
+
+const sendMailPopup = document.getElementById("sendMailPopup");
+const overlay = document.getElementById("overlay");
+const sendMailForm = document.getElementById("sendMailForm");
+
+let quotationId = null; 
+
+// Open Popup and Get ID
+document.querySelectorAll(".sendMailBtn").forEach(button => {
+    button.addEventListener("click", function () {
+        quotationId = this.getAttribute("data-id"); // Get the quotation ID
+        sendMailPopup.classList.add("show");
+        overlay.classList.add("show");
+    });
+});
+
+// Close Popup when clicking outside
+overlay.addEventListener("click", function () {
+    sendMailPopup.classList.remove("show");
+    overlay.classList.remove("show");
+});
+
+// Handle Form Submission
+sendMailForm.addEventListener("submit", async function (event) {
+    event.preventDefault(); // Prevent default form submission
+
+    console.log('quotation id in a send mail',quotationId)
+    if (!quotationId) {
+        alert("Quotation ID not found!");
+        return;
+    }
+
+    const formData = new FormData(sendMailForm);
+    const jsonObject = {};
+    formData.forEach((value, key) => {
+        jsonObject[key] = value;
+    });
+    
+    console.log("Converted JSON data:", jsonObject);
+
+    // console.log('formDatat :' , formData)
+
+    try {
+        const response = await fetch(`/quotation/sendEmail/${quotationId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(jsonObject)
+        });
+
+        const result = await response.json();
+
+        console.log('json response :', result)
+        if (response.ok) {
+            alert("Email Sent Successfully!");
+            sendMailPopup.classList.remove("show");
+            overlay.classList.remove("show");
+        } else {
+            alert("Error: " + result.message);
+        }
+    } catch (error) {
+        console.error("Error sending email:", error);
+        alert("Failed to send email.");
+    }
+});
