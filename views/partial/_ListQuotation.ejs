@@ -30,13 +30,23 @@
                 <% quotations.forEach((quotation) => { %>
                     <tr>
                         <td>
-                            <button class="editBtn" data-id="<%= quotation.id %>">Edit</button>
-                            <button class="deleteBtn" data-id="<%= quotation.id %>" style="background-color: red; color: white;">Delete</button>
+                            <div class="dropdown">
+                                <button class="dropdown-toggle" data-id="<%= quotation.id %>">⚙️ Manage</button>
+                                <div class="dropdown-menu">
+                                    <button class="editBtn" data-id="<%= quotation.id %>">✏️ Edit</button>
+                                    <button class="deleteBtn" data-id="<%= quotation.id %>" style="color: red;">🗑️ Delete</button>
+                                </div>
+                            </div>
                         </td>
                         <td>
-                            <i class="doc-icon" data-id="<%= quotation.id %>" style="cursor: pointer;">📄</i>
-                            <button class="excelBtn" data-id="<%= quotation.id %>" style="cursor: pointer;">📊</button>
-                            <button class="sendMailBtn" data-id="<%= quotation.id %>" style="cursor: pointer;">📧 Send Mail</button>
+                            <div class="dropdown">
+                                <button class="dropdown-toggle" data-id="<%= quotation.id %>">⚙️ Doc</button>
+                                <div class="dropdown-menu">
+                                    <button class="doc-icon" data-id="<%= quotation.id %>">📄 View PDF</button>
+                                    <button class="excelBtn" data-id="<%= quotation.id %>">📊 Export Excel</button>
+                                    <button class="sendMailBtn" data-id="<%= quotation.id %>">📧 Send Mail</button>
+                                </div>
+                            </div>
                         </td>
                         <td><%= quotation.id %></td>
                         <td><%= quotation.Consignee.name %></td>
@@ -73,3 +83,24 @@
 
     <iframe id="excelIframe" width="100%" height="600px" style="border: none;"></iframe>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".dropdown-toggle").forEach((button) => {
+            button.addEventListener("click", function (event) {
+                event.stopPropagation();
+                let dropdownMenu = this.nextElementSibling;
+                dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
+            });
+        });
+    
+        // Close dropdown if clicked outside
+        document.addEventListener("click", function (event) {
+            document.querySelectorAll(".dropdown-menu").forEach(menu => {
+                if (!menu.contains(event.target) && !menu.previousElementSibling.contains(event.target)) {
+                    menu.style.display = "none";
+                }
+            });
+        });
+    });
+</script>
