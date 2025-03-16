@@ -26,9 +26,9 @@
                     <th>Conv. Rate</th>
                 </tr>
             </thead>
-            <tbody >
+            <tbody>
                 <% quotations.forEach((quotation) => { %>
-                    <tr>
+                    <tr data-id="<%= quotation.id %>"> <!-- ✅ Add this -->
                         <td>
                             <div class="dropdown">
                                 <button class="dropdown-toggle" data-id="<%= quotation.id %>">⚙️ Manage</button>
@@ -70,7 +70,7 @@
                         <td><%= quotation.conversion_rate %></td>
                     </tr>
                 <% }); %>
-            </tbody>
+            </tbody>            
         </table>
     </div>
 

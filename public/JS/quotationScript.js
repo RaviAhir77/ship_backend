@@ -48,22 +48,27 @@ document.getElementById("quotationForm").addEventListener("submit", async functi
 });
 const quotationSelect = document.getElementById("quotationSelect");
 let quotationsData = []; // Store globally
+let productsData = [];
+let unitsData = [];
+let packagesData = [];
+
 
 document.querySelectorAll(".editBtn").forEach(button => {
     button.addEventListener("click", async function () {
         try {
             const id = this.dataset.id;
-
-            
             console.log('Clicked edit button for ID:', id);
 
-            // ✅ Fetch data from the correct API endpoint
             const response = await fetch(`/quotation?type=json`);
             const data = await response.json(); 
             console.log("Fetched data:", data);
 
-            // ✅ Extract quotations if they exist inside a specific key
+            // ✅ Store globally
             quotationsData = data.quotations || [];
+            productsData = data.products || [];
+            unitsData = data.units || [];
+            packagesData = data.packages || [];
+
             if (!Array.isArray(quotationsData) || quotationsData.length === 0) {
                 alert("No quotations found!");
                 return;
@@ -75,10 +80,8 @@ document.querySelectorAll(".editBtn").forEach(button => {
                 return;
             }
 
-            // ✅ Clear old options before repopulating
             quotationSelect.innerHTML = '<option value="">-- Select Quotation --</option>';
 
-            // ✅ Populate dropdown with quotations
             quotationsData.forEach(q => {
                 const option = document.createElement("option");
                 option.value = q.id;
@@ -86,12 +89,10 @@ document.querySelectorAll(".editBtn").forEach(button => {
                 quotationSelect.appendChild(option);
             });
 
-            // ✅ Set dropdown value and trigger change event
             quotationSelect.value = id;
             quotationSelect.dispatchEvent(new Event("change"));
             console.log('quotation selection value:', quotationSelect.value);
 
-            // ✅ Show the quotation form
             document.getElementById("quotationFormContainer").classList.add("show");
 
         } catch (error) {
@@ -102,79 +103,86 @@ document.querySelectorAll(".editBtn").forEach(button => {
 
 quotationSelect.addEventListener("change", function () {
     const id = this.value;
-    console.log('inside event this id:', id);
-
+    console.log("Inside event this id:", id);
+    
     if (!id) return;
 
+    console.log("Inside change event, quotationsData:", quotationsData);
     const quotation = quotationsData.find(q => q.id == Number(id));
-    console.log('quotationData : ',quotationsData)
-    console.log('quotation id:', quotation);
 
     if (!quotation) {
-        alert("Quotation not found!"); 
+        alert("Quotation not found!");
         return;
     }
 
     console.log("Selected quotation:", quotation);
 
-    // ✅ Populate form fields
-    document.getElementById("quotation_id").value = quotation.id;
-    console.log('1',document.getElementById("quotation_id").value = quotation.id)
-
-    document.getElementById("date").value = quotation.date;
-    console.log('2',document.getElementById("date").value = quotation.date)
-
-    document.getElementById("consignee_id").value = quotation.consignee_id;
-    console.log('3',document.getElementById("consignee_id").value = quotation.consignee_id)
-
-    document.getElementById("consignee_address").value = quotation.Consignee?.address || "";
-    console.log('4',document.getElementById("consignee_address").value = quotation.Consignee?.address)
-
-    document.getElementById("countrySelect").value = quotation.country_id;
-    console.log('5',document.getElementById("countrySelect").value = quotation.country_id)
-
-    document.getElementById("portSelect").value = quotation.port_id;
-    console.log('6',document.getElementById("portSelect").value = quotation.port_id)
-
-    document.querySelector("[name='currency_id']").value = quotation.currency_id;
-    console.log('7',document.querySelector("[name='currency_id']").value = quotation.currency_id)
-
-    document.querySelector("[name='conversion_rate']").value = quotation.conversion_rate;
-    console.log('8',document.querySelector("[name='conversion_rate']").value = quotation.conversion_rate)
-
-    document.querySelector("[name='totalNetWeight']").value = quotation.totalNetWeight;
-    console.log('9',document.querySelector("[name='totalNetWeight']").value = quotation.totalNetWeight)
-
-    document.querySelector("[name='totalGrossWeight']").value = quotation.totalGrossWeight;
-    console.log('10',document.querySelector("[name='totalGrossWeight']").value = quotation.totalGrossWeight);
-
-    document.querySelector("[name='total_native']").value = quotation.total_native;
-    console.log('11',document.querySelector("[name='total_native']").value = quotation.total_native)
-
-    document.querySelector("[name='total_inr']").value = quotation.total_inr;
-    console.log('12',document.querySelector("[name='total_inr']").value = quotation.total_inr)
-
-    // ✅ Clear and populate products
     const productContainer = document.getElementById("productContainer");
+    if (!productContainer) {
+        console.error("Product container not found!");
+        return;
+    }
     productContainer.innerHTML = "";
 
-    console.log('log of a quotationProducts :', quotation.QuotationProducts);
+    if (!quotation.QuotationProducts || !Array.isArray(quotation.QuotationProducts)) {
+        console.warn("QuotationProducts is missing or not an array.");
+        return;
+    }
+
+    // ✅ Ensure all elements exist before setting values
+    const setValue = (selector, value) => {
+        const element = document.querySelector(selector);
+        if (element) element.value = value;
+        else console.warn(`Element ${selector} not found.`);
+    };
+
+    setValue("#quotation_id", quotation.id);
+    setValue("#date", quotation.date);
+    setValue("#consignee_id", quotation.consignee_id);
+    setValue("#consignee_address", quotation.Consignee?.address || "");
+    setValue("#countrySelect", quotation.country_id);
+    setValue("#portSelect", quotation.port_id);
+    setValue("[name='currency_id']", quotation.currency_id);
+    setValue("[name='conversion_rate']", quotation.conversion_rate);
+    setValue("[name='totalNetWeight']", quotation.totalNetWeight);
+    setValue("[name='totalGrossWeight']", quotation.totalGrossWeight);
+    setValue("[name='total_native']", quotation.total_native);
+    setValue("[name='total_inr']", quotation.total_inr);
+
+    // ✅ Clear and populate product container
+    // const productContainer = document.getElementById("productContainer");
+    // if (!productContainer) {
+    //     console.error("Product container not found!");
+    //     return;
+    // }
+    // productContainer.innerHTML = "";
+
+    console.log("log of a quotationProducts:", quotation.QuotationProducts);
+
+    if (!quotation.QuotationProducts || !Array.isArray(quotation.QuotationProducts)) {
+        console.warn("QuotationProducts is missing or not an array.");
+        return;
+    }
+
     quotation.QuotationProducts.forEach(product => {
         const productBlock = document.createElement("div");
         productBlock.classList.add("product-block");
-        console.log('p1',product.Product?.productName)
-
+        console.log("packagesData:", packagesData);
         productBlock.innerHTML = `
             <div>
                 <label for="product_id">Select Product:</label>
                 <select class="productSelect" name="product_id">
                     <option value="">-- Select Product --</option>
-                    <option value="${product.product_id}-0" selected>${product.Product?.productName || "Unknown"}</option>
-                    ${(product.Product?.variants || []).map(variant => 
-                        `<option value="${product.product_id}-${variant.id}" ${variant.id == product.variant_id ? "selected" : ""}>
-                            &nbsp;&nbsp;&nbsp;↳${product.Product?.productName}-${variant.name}
-                        </option>`
-                    ).join("")}
+                    ${productsData.map(p => `
+                        <option value="${p.id}-0" ${p.id == product.product_id ? "selected" : ""}>
+                            ${p.productName}
+                        </option>
+                        ${(p.variants || []).map(variant => `
+                            <option value="${p.id}-${variant.id}" ${variant.id == product.variant_id ? "selected" : ""}>
+                                &nbsp;&nbsp;&nbsp;↳ ${p.productName}-${variant.name}
+                            </option>
+                        `).join("")}
+                    `).join("")}
                 </select>
             
                 <label for="quantity">Quantity:</label>
@@ -190,9 +198,12 @@ quotationSelect.addEventListener("change", function () {
             <div>
                 <label for="unit_id">Unit:</label>
                 <select name="unit_id" class="unitSelect" required>
-                    <option value="${product.unit_id}" selected>
-                        ${product.Unit?.orderUnit || "Unknown"} (${product.Unit?.packingUnit || "Unknown"})
-                    </option>
+                    <option value="">-- Select Unit --</option>
+                    ${unitsData.map(unit => `
+                        <option value="${unit.id}" ${unit.id == product.unit_id ? "selected" : ""}>
+                            ${unit.orderUnit} (${unit.packingUnit})
+                        </option>
+                    `).join("")}
                 </select>
 
                 <label for="netWeight">Net Weight:</label>
@@ -206,19 +217,25 @@ quotationSelect.addEventListener("change", function () {
             
                 <label for="package_id">Package:</label>
                 <select name="package_id" class="packageSelect" required>
-                    <option value="${product.package_id}" selected>${product.package_id}</option>
+                    <option value="">-- Select Package --</option>
+                    ${packagesData.map(pkg => `
+                        <option value="${pkg.id}" 
+                            data-net-weight="${pkg.netWeight}" 
+                            data-gross-weight="${pkg.grossWeight}" 
+                            ${pkg.id == product.package_id ? "selected" : ""}>
+                            ${pkg.netWeight} (${pkg.grossWeight})
+                        </option>
+                    `).join("")}
                 </select>
             </div>
 
             <button type="button" class="removeProductBtn">Remove</button>
         `;
 
-        console.log(productBlock.innerHTML)
-
         productContainer.appendChild(productBlock);
     });
-
 });
+
 
 function addQuotationToTable(quotation) {
     
@@ -244,7 +261,12 @@ function addQuotationToTable(quotation) {
 
 function updateQuotationRow(updatedQuotation) {
     const row = document.querySelector(`tr[data-id="${updatedQuotation.id}"]`);
-    if (!row) return;
+    if (!row) {
+        console.error("Row not found for ID:", updatedQuotation.id);
+        return;
+    }
+
+    console.log("Updating row with data:", updatedQuotation); // ✅ Debugging check
 
     row.innerHTML = `
         <td>
@@ -254,25 +276,25 @@ function updateQuotationRow(updatedQuotation) {
             <i class="doc-icon">📄</i>
         </td>
         <td>${updatedQuotation.id}</td>
-        <td>${updatedQuotation.Consignee.name}</td>
+        <td>${updatedQuotation.Consignee?.name || "Unknown"}</td>
         <td>
-            ${updatedQuotation.QuotationProducts.map(product => 
-                `${product.Product.productName} (${product.quantity})`
+            ${(updatedQuotation.QuotationProducts || []).map(product => 
+                `${product.Product?.productName || "Unknown"} (${product.quantity || 0})`
             ).join(", ")}
         </td>
-        <td>${updatedQuotation.Country.country_name}</td>
-        <td>${updatedQuotation.Port.portName}</td>
+        <td>${updatedQuotation.Country?.country_name || "Unknown"}</td>
+        <td>${updatedQuotation.Port?.portName || "Unknown"}</td>
         <td>
             ${updatedQuotation.status === "Accepted" 
                 ? '<span class="status-accepted">Accepted</span>' 
                 : '<span class="status-draft">Draft</span>'}
         </td>
-        <td>${updatedQuotation.total_native} (USD)</td>
-        <td>${updatedQuotation.total_native} (USD)</td>
-        <td>${updatedQuotation.conversion_rate}</td>
+        <td>${updatedQuotation.total_native || 0} (USD)</td>
+        <td>${updatedQuotation.total_native || 0} (USD)</td>
+        <td>${updatedQuotation.conversion_rate || 1}</td>
     `;
 
-    // ✅ Re-attach the edit button event listener
+    // ✅ Re-attach event listener to the edit button
     row.querySelector(".editBtn").addEventListener("click", function () {
         document.querySelector(`button[data-id="${updatedQuotation.id}"]`).click();
     });
