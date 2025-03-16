@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Scrollable chart container */
+        .chart-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Set a large width for the canvas */
+        canvas {
+            min-width: 1000px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Quotation Price Analytics</h2>
+
+    <!-- Month & Year Selection -->
+    <label for="monthPicker">Select Month & Year:</label>
+    <input type="month" id="monthPicker">
+
+    <div class="chart-container">
+        <canvas id="quotationChart"></canvas>
+    </div>
+
+    <script>
+        let chart;
+
+        async function fetchChartData(year, month) {
+            const response = await fetch(`/chart/data?year=${year}&month=${month}`);
+            const chartData = await response.json();
+
+            if (chart) chart.destroy(); 
+
+            const ctx = document.getElementById('quotationChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { font: { size: 14 } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Date', font: { size: 16 } },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: 'Total INR', font: { size: 16 } },
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 30000,
+                                callback: function(value) { return '₹' + value.toLocaleString(); }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        
+        const monthPicker = document.getElementById('monthPicker');
+        const today = new Date();
+        monthPicker.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        
+        
+        fetchChartData(today.getFullYear(), today.getMonth() + 1);
+
+
+        monthPicker.addEventListener('change', (event) => {
+            const [year, month] = event.target.value.split('-');
+            fetchChartData(year, month);
+        });
+    </script>
+</body>
+</html>
