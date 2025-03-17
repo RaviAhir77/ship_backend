@@ -241,6 +241,7 @@ export const quotationCreate = async(req,res) => {
             await quotationProductSchema.bulkCreate(quotationProducts);
         }
 
+        const storePdfS3 = await generateAndStorePDF(newQuotation.id)
         const fullQuotation = await quotationSchema.findByPk(newQuotation.id, {
             include: [
                 {
@@ -487,6 +488,8 @@ export const updateQuotation = async(req,res) => {
                 { model: currencySchema, attributes: ["currency"] }
             ]
         });
+
+        const pdfUrl = await generateAndStorePDF(id);
 
         res.json({ message: "Quotation updated successfully", quotation: updatedQuotation });
     } catch (error) {
