@@ -217,7 +217,7 @@ export const quotationCreate = async(req,res) => {
                 
                 if (isNaN(product_id)) {
                     console.error(`Invalid product_id at index ${index}:`, product.product_id);
-                    return null; // Skip this entry
+                    return null; 
                 }
 
                 return {
@@ -317,7 +317,7 @@ export const getPDF = async(req,res) => {
                 {
                     model: quotationProductSchema,
                     include: [
-                        { model: productSchema, attributes: ['productName','variants'] },
+                        { model: productSchema, attributes: ['productName','variants','gst'] },
                         { model: unitSchema, attributes: ['orderUnit','packingUnit'] },
                     ],
                    
@@ -337,6 +337,7 @@ export const getPDF = async(req,res) => {
 
         // ✅ Keep the original number and also store words
         quotationData.total_native_words = toWords(Number(quotationData.total_native)) + " " + quotationData.Currency.currency + " ONLY"; // In words
+        // res.json({message : 'quotation data',quotations : quotationData})
         res.render('pdf',{quotations : quotationData})
     } catch (error) {
         console.error('Error fetching quotations:', error);

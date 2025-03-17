@@ -48,7 +48,7 @@ export const generateAndStorePDF = async (id) => {
                 {
                     model: quotationProductSchema,
                     include: [
-                        { model: productSchema, attributes: ['productName', 'variants'] },
+                        { model: productSchema, attributes: ['productName', 'variants','gst'] },
                         { model: unitSchema, attributes: ['orderUnit', 'packingUnit'] },
                     ],
                 },
@@ -78,7 +78,11 @@ export const generateAndStorePDF = async (id) => {
         const htmlContent = ejs.render(ejsTemplate, { quotations: quotationData });
 
         // Generate PDF using Puppeteer
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Adjust this path based on your system
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: "networkidle0" });
 
@@ -464,7 +468,7 @@ export const simplePdfGenerator = async(id) => {
                 {
                     model: quotationProductSchema,
                     include: [
-                        { model: productSchema, attributes: ['productName', 'variants'] },
+                        { model: productSchema, attributes: ['productName', 'variants','gst'] },
                         { model: unitSchema, attributes: ['orderUnit', 'packingUnit'] },
                     ],
                 },
@@ -493,7 +497,11 @@ export const simplePdfGenerator = async(id) => {
         const ejsTemplate = fs.readFileSync(path.join(__dirname, "views/pdf.ejs"), "utf-8");
         const htmlContent = ejs.render(ejsTemplate, { quotations: quotationData });
 
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Adjust this path based on your system
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: "networkidle0" });
 

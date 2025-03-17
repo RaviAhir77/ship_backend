@@ -79,24 +79,45 @@
             <tr>
                 <th>SR. NO.</th>
                 <th>MARKING</th>
-                <th>NO. OF PACKAGES</th>
-                <th>DESCRIPTION OF GOODS</th>
-                <th>H.S. CODE</th>
+                <th>NOP</th>
                 <th>QTY. TOTAL</th>
                 <th>NET W.T.</th>
                 <th>GROSS W.T.</th>
                 <th>RATE (<%= quotations.Currency?.currency %>)</th>
                 <th>TOTAL (<%= quotations.Currency?.currency %>)</th>
+                <th>TOTAL (INR)</th>
+                <th>GST %</th>
+                <th>GST Amount</th>
+                <th>Amount Including GST</th>
             </tr>
         </thead>
         <tbody>
-            <% quotations.QuotationProducts.forEach((product, index) => { %>
+            <% 
+            let totalAmountIncludingGST = 0;
+            let totalINRWithoutGST = 0;
+            let totalGSTAmount = 0;
+            let totalProductPrice = 0;
+            let productCount = quotations.QuotationProducts.length;
+    
+            quotations.QuotationProducts.forEach((product, index) => { 
+                let conversionRate = parseFloat(quotations.conversion_rate);
+                let totalNative = parseFloat(product.total * product.total_package); // Total in native currency
+                let totalINR = totalNative * conversionRate; // Convert to INR
+                let gstPercentage = parseFloat(product.Product.gst); // GST %
+                let gstAmount = (totalINR * gstPercentage) / 100; // GST Amount
+                let amountIncludingGST = totalINR + gstAmount; // Final Amount Including GST
+    
+                totalAmountIncludingGST += amountIncludingGST;
+                totalINRWithoutGST += totalINR;
+                totalGSTAmount += gstAmount;
+                totalProductPrice += parseFloat(totalINR);
+            %>
                 <tr>
                     <td><%= index + 1 %></td>
                     <% 
                         let productName = product.Product.productName; 
                         let variantName = "";
-                        
+    
                         if (product.variant_id && product.variant_id !== 0) {
                             let variant = product.Product.variants.find(v => v.id === product.variant_id);
                             if (variant) {
@@ -104,40 +125,43 @@
                             }
                         }
                     %>
-        
                     <td><%= productName + variantName %></td>
                     <td><%= product.total_package %></td>
-                    <td></td>
-                    <td></td>
                     <td><%= product.quantity %> <%= product.Unit.orderUnit %></td>
                     <td><%= product.net_weight %> <%= product.Unit.packingUnit %></td>
                     <td><%= product.gross_weight %> <%= product.Unit.packingUnit %></td>
                     <td><%= product.price %> </td>
-                    <td><%= product.total %></td>
+                    <td><%= (product.total * product.total_package).toFixed(2) %></td>
+                    <td><%= totalINR.toFixed(2) %></td>
+                    <td><%= gstPercentage %> %</td>
+                    <td><%= gstAmount.toFixed(2) %></td>
+                    <td><%= amountIncludingGST.toFixed(2) %></td>
                 </tr>
             <% }) %>
         </tbody>
         <tr>
-            <td colspan="5" style="text-align: right;"></td>
+            <td colspan="3" style="text-align: right;"></td>
             <td>
                 <strong>TOTAL QTY.</strong>
                 <br>
                 <span><%= quotations.totalQuantity %></span>
             </td>
-            <td></td>
-            <td></td>
-            <td>
-                <span>SUBTOTAL</span><br>
-                <span>DISCOUNT</span> <br>
-                <span>TOTAL FOB</span> 
-            </td>
-            <td>
-                <span><%= quotations.total_native %></span> <br>
-                <span>0 %</span> <br>
-                <span><%= quotations.total_native %></span>
+            <td colspan="7" style="text-align: right; padding-right: 10px; line-height: 1.8;">
+                <span>Subtotal (INR)</span><br>
+                <span>Average Product Price (INR)</span><br>
+                <span>Amount of GST (INR)</span><br>
+                <span>Grand Total (INR)</span> 
+            </td>  
+            <td style="line-height: 1.8;">
+                <span><%= totalINRWithoutGST.toFixed(2) %></span> <br> 
+                <span><%= (totalProductPrice / productCount).toFixed(2) %></span> <br> 
+                <span><%= totalGSTAmount.toFixed(2) %></span> <br> 
+                <span><%= totalAmountIncludingGST.toFixed(2) %></span>
             </td>
         </tr>
     </table>
+    
+    
 
     <table>
         <tr>

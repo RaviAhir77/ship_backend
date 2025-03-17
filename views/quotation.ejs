@@ -227,10 +227,11 @@
         let netWeight = parseFloat(productBlock.querySelector(".netWeight")?.value) || 0;
         let grossWeight = parseFloat(productBlock.querySelector(".grossWeight")?.value) || 0;
         let totalPrice = parseFloat(productBlock.querySelector(".totalPrice")?.value) || 0;
+        let totalPackage = parseFloat(productBlock.querySelector(".totalPackage")?.value) || 1;
 
         totalNetWeight += netWeight;
         totalGrossWeight += grossWeight;
-        totalNative += totalPrice;
+        totalNative += totalPrice * totalPackage;
     });
 
             let conversionRate = parseFloat(document.querySelector("input[name='conversion_rate']")?.value) || 1;
