@@ -152,7 +152,7 @@ button:hover {
 
 /* Page Container */
 .quotation-container {
-    max-width: 1400px;  /* Ensuring proper width */
+    max-width: 1200px;  /* Ensuring proper width */
     margin: auto;
     padding: 20px;
     background: #fff;

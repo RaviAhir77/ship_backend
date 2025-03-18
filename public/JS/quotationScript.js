@@ -260,9 +260,24 @@ function addQuotationToTable(quotation) {
         newRow.setAttribute("data-id", quotation.id);
         newRow.innerHTML = `
             <td>
-                <button class="editBtn" data-id="${quotation.id}">Edit</button>
+                <div class="dropdown">
+                    <button class="dropdown-toggle" data-id="${quotation.id}">⚙️ Manage</button>
+                    <div class="dropdown-menu">
+                        <button class="editBtn" data-id="${quotation.id}">✏️ Edit</button>
+                        <button class="deleteBtn" data-id="${quotation.id}" style="color: red;">🗑️ Delete</button>
+                    </div>
+                </div>
             </td>
-            <td><i class="doc-icon">📄</i></td>
+            <td>
+                <div class="dropdown">
+                    <button class="dropdown-toggle" data-id="${quotation.id}">⚙️ Doc</button>
+                    <div class="dropdown-menu">
+                        <button class="doc-icon" data-id="${quotation.id}">📄 View PDF</button>
+                        <button class="excelBtn" data-id="${quotation.id}">📊 Export Excel</button>
+                        <button class="sendMailBtn" data-id="${quotation.id}">📧 Send Mail</button>
+                    </div>
+                </div>
+            </td>
             <td>${quotation.id}</td>
             <td>${quotation.Consignee.name}</td>
             <td>${quotation.QuotationProducts.map(p => `${p.Product.productName} (${p.quantity})`).join(", ")}</td>
@@ -274,6 +289,7 @@ function addQuotationToTable(quotation) {
             <td>${quotation.conversion_rate}</td>
         `;
         document.querySelector(".quotation-table tbody").appendChild(newRow);
+        initializeDrowdown();
 }
 
 function updateQuotationRow(updatedQuotation) {
@@ -286,11 +302,24 @@ function updateQuotationRow(updatedQuotation) {
     console.log("Updating row with data:", updatedQuotation); // ✅ Debugging check
 
     row.innerHTML = `
-        <td>
-            <button class="editBtn" data-id="${updatedQuotation.id}">Edit</button>
+         <td>
+            <div class="dropdown">
+                <button class="dropdown-toggle" data-id="${updatedQuotation.id}">⚙️ Manage</button>
+                <div class="dropdown-menu">
+                    <button class="editBtn" data-id="${updatedQuotation.id}">✏️ Edit</button>
+                    <button class="deleteBtn" data-id="${updatedQuotation.id}" style="color: red;">🗑️ Delete</button>
+                </div>
+            </div>
         </td>
         <td>
-            <i class="doc-icon">📄</i>
+            <div class="dropdown">
+                <button class="dropdown-toggle" data-id="${updatedQuotation.id}">⚙️ Doc</button>
+                <div class="dropdown-menu">
+                    <button class="doc-icon" data-id="${updatedQuotation.id}">📄 View PDF</button>
+                    <button class="excelBtn" data-id="${updatedQuotation.id}">📊 Export Excel</button>
+                    <button class="sendMailBtn" data-id="${updatedQuotation.id}">📧 Send Mail</button>
+                </div>
+            </div>
         </td>
         <td>${updatedQuotation.id}</td>
         <td>${updatedQuotation.Consignee?.name || "Unknown"}</td>
@@ -312,9 +341,30 @@ function updateQuotationRow(updatedQuotation) {
     `;
 
     // ✅ Re-attach event listener to the edit button
-    row.querySelector(".editBtn").addEventListener("click", function () {
-        document.querySelector(`button[data-id="${updatedQuotation.id}"]`).click();
+    initializeDrowdown();
+
+
+}
+
+function initializeDrowdown(){
+    document.querySelectorAll(".dropdown-toggle").forEach(button => {
+        button.removeEventListener('click',toggleDropdown)
+        button.addEventListener('click',toggleDropdown)
     });
+
+    document.addEventListener('click',function(event){
+        document.querySelectorAll(".dropdown-menu").forEach(menu => {
+            if(!menu.contains(event.target) && !menu.previousElementSibling.contains(event.target)){
+                menu.style.display = "none"
+            }
+        })
+    });
+}
+
+function toggleDropdown(event) {
+    event.stopPropagation();
+    let dropdownMenu = this.nextElementSibling;
+    dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
 }
 
 // iframe generator 

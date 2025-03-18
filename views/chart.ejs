@@ -9,7 +9,10 @@
         /* Scrollable chart container */
         .chart-container {
             width: 100%;
+            max-width: 1200px; 
+            height: 720px; 
             overflow-x: auto;
+            margin: auto; /* Centers the chart */
         }
 
         /* Set a large width for the canvas */
@@ -18,17 +21,19 @@
         }
     </style>
     <link rel="stylesheet" href="/CSS/sidebar.css">
+    <link rel="stylesheet" href="/CSS/sidebar.css">
 </head>
 <body>
 
     <!-- <%- include('partial/sideBar') %> -->
-    <h2>Quotation Price Analytics</h2>
-
-    <!-- Month & Year Selection -->
-    <label for="monthPicker">Select Year & Month:</label>
-    <input type="month" id="monthPicker">
+    <%- include('partial/sideBar') %>
+    
 
     <div class="chart-container">
+        <h2>Quotation Price Analytics</h2>
+
+        <label for="monthPicker">Select Year & Month:</label>
+        <input type="month" id="monthPicker">
         <canvas id="quotationChart"></canvas>
     </div>
 
@@ -47,7 +52,7 @@
                 data: chartData,
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: {
                             display: true,
