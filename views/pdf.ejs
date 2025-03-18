@@ -100,29 +100,41 @@
             let totalProductRate = 0;
             let totalquantity = 0;
             let productCount = quotations.QuotationProducts.length;
-    
+            let extraCharge = 1235; // Extra charge in native currency
+
+            // Calculate total quantity
+            quotations.QuotationProducts.forEach(product => {
+                totalquantity += parseFloat(product.quantity);
+            });
+
+            // Calculate extra charge per unit
+            let extraChargePerUnit = extraCharge / totalquantity;
+
             quotations.QuotationProducts.forEach((product, index) => { 
                 let conversionRate = parseFloat(quotations.conversion_rate);
-                let totalNative = parseFloat(product.total * product.total_package); // Total in native currency
-                let totalINR = totalNative * conversionRate; // Convert to INR
-                let gstPercentage = parseFloat(product.Product.gst); // GST %
-                let gstAmount = (totalINR * gstPercentage) / 100; // GST Amount
-                let amountIncludingGST = totalINR + gstAmount; // Final Amount Including GST
-                 
-    
+                
+                // Correct formula for adjusted unit price
+                let adjustedPricePerUnit = parseFloat(product.price) + extraChargePerUnit;
+
+                // Corrected total native currency calculation
+                let totalNative = adjustedPricePerUnit * parseFloat(product.quantity);
+                let totalINR = totalNative * conversionRate;
+
+                let gstPercentage = parseFloat(product.Product.gst);
+                let gstAmount = (totalINR * gstPercentage) / 100;
+                let amountIncludingGST = totalINR + gstAmount;
+
                 totalAmountIncludingGST += amountIncludingGST;
                 totalINRWithoutGST += totalINR;
                 totalGSTAmount += gstAmount;
-                totalProductPrice += parseFloat(totalINR);
-                totalProductRate += parseFloat(product.total);
-                totalquantity += parseFloat(product.quantity)
+                totalProductPrice += totalINR;
+                totalProductRate += adjustedPricePerUnit * parseFloat(product.quantity);
             %>
                 <tr>
                     <td><%= index + 1 %></td>
                     <% 
                         let productName = product.Product.productName; 
                         let variantName = "";
-    
                         if (product.variant_id && product.variant_id !== 0) {
                             let variant = product.Product.variants.find(v => v.id === product.variant_id);
                             if (variant) {
@@ -135,14 +147,15 @@
                     <td><%= product.quantity %> <%= product.Unit.orderUnit %></td>
                     <td><%= product.net_weight %> <%= product.Unit.packingUnit %></td>
                     <td><%= product.gross_weight %> <%= product.Unit.packingUnit %></td>
-                    <td><%= product.price %> </td>
-                    <td><%= product.total %></td>
+                    <td><%= adjustedPricePerUnit.toFixed(2) %></td>
+                    <td><%= totalNative.toFixed(2) %></td>
                     <td><%= totalINR.toFixed(2) %></td>
                     <td><%= gstPercentage %> %</td>
                     <td><%= gstAmount.toFixed(2) %></td>
                     <td><%= amountIncludingGST.toFixed(2) %></td>
                 </tr>
-            <% }) %>
+<% }) %>
+
         </tbody>
         <tr>
             <td colspan="3" style="text-align: right;"></td>

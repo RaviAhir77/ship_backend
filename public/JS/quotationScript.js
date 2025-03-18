@@ -344,7 +344,6 @@ deleteButtons.forEach((button) => {
             const result = await response.json();
 
             if (response.ok) {
-                // alert(result.message);
                 location.reload(); // Reload the page to update the table
             } else {
                 alert("Error: " + result.message);
