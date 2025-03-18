@@ -99,24 +99,27 @@
             let totalProductPrice = 0;
             let totalProductRate = 0;
             let totalquantity = 0;
+            let totalBasePrice = 0; // Sum of all product prices (before extra charge)
             let productCount = quotations.QuotationProducts.length;
             let extraCharge = 1235; // Extra charge in native currency
 
-            // Calculate total quantity
+            // First, calculate the total base price (sum of all product prices * quantity)
             quotations.QuotationProducts.forEach(product => {
-                totalquantity += parseFloat(product.quantity);
+                totalBasePrice += parseFloat(product.price) * parseFloat(product.quantity);
             });
-
-            // Calculate extra charge per unit
-            let extraChargePerUnit = extraCharge / totalquantity;
 
             quotations.QuotationProducts.forEach((product, index) => { 
                 let conversionRate = parseFloat(quotations.conversion_rate);
+                totalquantity += parseFloat(product.quantity)
                 
-                // Correct formula for adjusted unit price
-                let adjustedPricePerUnit = parseFloat(product.price) + extraChargePerUnit;
+                // Determine the percentage contribution of this product's total price
+                let productTotalBase = parseFloat(product.price) * parseFloat(product.quantity);
+                let productExtraCharge = (productTotalBase / totalBasePrice) * extraCharge; // Distribute extra charge proportionally
 
-                // Corrected total native currency calculation
+                // Adjust the price based on the proportional extra charge
+                let adjustedPricePerUnit = parseFloat(product.price) + (productExtraCharge / parseFloat(product.quantity));
+
+                // Calculate new total price after adjustment
                 let totalNative = adjustedPricePerUnit * parseFloat(product.quantity);
                 let totalINR = totalNative * conversionRate;
 
@@ -129,7 +132,7 @@
                 totalGSTAmount += gstAmount;
                 totalProductPrice += totalINR;
                 totalProductRate += adjustedPricePerUnit * parseFloat(product.quantity);
-            %>
+        %>
                 <tr>
                     <td><%= index + 1 %></td>
                     <% 
@@ -154,7 +157,7 @@
                     <td><%= gstAmount.toFixed(2) %></td>
                     <td><%= amountIncludingGST.toFixed(2) %></td>
                 </tr>
-<% }) %>
+        <% }) %>
 
         </tbody>
         <tr>

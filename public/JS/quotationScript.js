@@ -14,8 +14,26 @@ document.getElementById("quotationForm").addEventListener("submit", async functi
     event.preventDefault();
 
     const formData = new FormData(this);
-    const data = Object.fromEntries(formData.entries());
-    // console.log('data :',data) 
+    let data = Object.fromEntries(formData.entries());
+
+    // Collect multiple product details manually
+    let products = [];
+    document.querySelectorAll(".product-block").forEach((block) => {
+        const product = {
+            product_id: block.querySelector(".productSelect").value,
+            quantity: block.querySelector(".quantity").value,
+            price: block.querySelector(".price").value,
+            total: block.querySelector(".totalPrice").value,
+            unit_id: block.querySelector(".unitSelect").value,
+            netWeight: block.querySelector(".netWeight").value,
+            grossWeight: block.querySelector(".grossWeight").value,
+            totalPackage: block.querySelector(".totalPackage").value,
+            package_id: block.querySelector(".packageSelect").value
+        };
+        products.push(product);
+    });
+
+    data.products = products; // Add products array to data object
 
     const isUpdate = !!data.quotation_id;
     const url = isUpdate ? `/quotation/update/${data.quotation_id}` : "/quotation/create";
@@ -30,14 +48,12 @@ document.getElementById("quotationForm").addEventListener("submit", async functi
 
         const result = await response.json();
         if (response.ok) {
-            // alert(isUpdate ? "Quotation updated successfully!" : "Quotation created successfully!");
             if (isUpdate) {
                 updateQuotationRow(result.quotation);
             } else {
                 addQuotationToTable(result.quotation);
             }
-            form.reset();
-            quotationIdField.value = "";
+            this.reset();
             document.getElementById("quotationFormContainer").classList.remove("show"); 
         } else {
             alert("Error: " + result.error);
@@ -46,6 +62,7 @@ document.getElementById("quotationForm").addEventListener("submit", async functi
         console.error("Fetch error:", error);
     }
 });
+
 const quotationSelect = document.getElementById("quotationSelect");
 let quotationsData = []; // Store globally
 let productsData = [];
