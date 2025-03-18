@@ -97,6 +97,8 @@
             let totalINRWithoutGST = 0;
             let totalGSTAmount = 0;
             let totalProductPrice = 0;
+            let totalProductRate = 0;
+            let totalquantity = 0;
             let productCount = quotations.QuotationProducts.length;
     
             quotations.QuotationProducts.forEach((product, index) => { 
@@ -106,11 +108,14 @@
                 let gstPercentage = parseFloat(product.Product.gst); // GST %
                 let gstAmount = (totalINR * gstPercentage) / 100; // GST Amount
                 let amountIncludingGST = totalINR + gstAmount; // Final Amount Including GST
+                 
     
                 totalAmountIncludingGST += amountIncludingGST;
                 totalINRWithoutGST += totalINR;
                 totalGSTAmount += gstAmount;
                 totalProductPrice += parseFloat(totalINR);
+                totalProductRate += parseFloat(product.total);
+                totalquantity += parseFloat(product.quantity)
             %>
                 <tr>
                     <td><%= index + 1 %></td>
@@ -131,7 +136,7 @@
                     <td><%= product.net_weight %> <%= product.Unit.packingUnit %></td>
                     <td><%= product.gross_weight %> <%= product.Unit.packingUnit %></td>
                     <td><%= product.price %> </td>
-                    <td><%= (product.total * product.total_package).toFixed(2) %></td>
+                    <td><%= product.total %></td>
                     <td><%= totalINR.toFixed(2) %></td>
                     <td><%= gstPercentage %> %</td>
                     <td><%= gstAmount.toFixed(2) %></td>
@@ -148,13 +153,13 @@
             </td>
             <td colspan="7" style="text-align: right; padding-right: 10px; line-height: 1.8;">
                 <span>Subtotal (INR)</span><br>
-                <span>Average Product Price (INR)</span><br>
+                <span>Average Product Price ( QTY/<%= quotations.Currency?.currency %> )</span><br>
                 <span>Amount of GST (INR)</span><br>
                 <span>Grand Total (INR)</span> 
             </td>  
             <td style="line-height: 1.8;">
                 <span><%= totalINRWithoutGST.toFixed(2) %></span> <br> 
-                <span><%= (totalProductPrice / productCount).toFixed(2) %></span> <br> 
+                <span><%= (totalProductRate / totalquantity).toFixed(2) %></span> <br> 
                 <span><%= totalGSTAmount.toFixed(2) %></span> <br> 
                 <span><%= totalAmountIncludingGST.toFixed(2) %></span>
             </td>
