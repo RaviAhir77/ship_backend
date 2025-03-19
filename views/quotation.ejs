@@ -91,7 +91,7 @@
                         <label for="unit_id">Unit:</label>
                         <select name="unit_id" class="unitSelect" required>
                             <% units.forEach(unit => { %>
-                                <option value="<%= unit.id %>"><%= unit.orderUnit %> (<%= unit.packingUnit %>)</option>
+                                <option value="<%= unit.id %>" data-weight="<%= unit.weight %>"><%= unit.orderUnit %> (<%= unit.packingUnit %>)</option>
                             <% }); %>
                         </select>
                 
@@ -185,42 +185,69 @@
 
 
     function attachEventListeners(productBlock) {
-        let quantityInput = productBlock.querySelector('.quantity');
-        let priceInput = productBlock.querySelector('.price');
-        let totalPriceInput = productBlock.querySelector('.totalPrice');
-        let packageSelect = productBlock.querySelector('.packageSelect');
-        let totalPackageInput = productBlock.querySelector('.totalPackage');
-        let netWeightInput = productBlock.querySelector('.netWeight');
-        let grossWeightInput = productBlock.querySelector('.grossWeight');
+    let quantityInput = productBlock.querySelector('.quantity');
+    let priceInput = productBlock.querySelector('.price');
+    let totalPriceInput = productBlock.querySelector('.totalPrice');
+    let packageSelect = productBlock.querySelector('.packageSelect');
+    let totalPackageInput = productBlock.querySelector('.totalPackage');
+    let netWeightInput = productBlock.querySelector('.netWeight');
+    let grossWeightInput = productBlock.querySelector('.grossWeight');
+    let unitSelect = productBlock.querySelector('.unitSelect');
+    
+    totalPackageInput.readOnly = true; // Prevent user input
 
-        function calculate() {
-            let quantity = quantityInput.value || 0;
-            let price = priceInput.value || 0;
-            totalPriceInput.value = (quantity * price).toFixed(2);
-        }
-
-        function updateWeights() {
-            let selectedOption = packageSelect.options[packageSelect.selectedIndex];
-            let totalPackage = totalPackageInput.value || 1; // Default to 1 if empty
-
-            let netWeight = selectedOption.getAttribute("data-net-weight") || 0;
-            let grossWeight = selectedOption.getAttribute("data-gross-weight") || 0;
-
-            netWeightInput.value = (netWeight * totalPackage).toFixed(2);
-            grossWeightInput.value = (grossWeight * totalPackage).toFixed(2);
-
-            calculateTotals();
-        }
-
-        quantityInput.addEventListener('input', calculate);
-        priceInput.addEventListener('input', calculate);
-        packageSelect.addEventListener('change', updateWeights);
-        totalPackageInput.addEventListener('input', updateWeights);
+    function getOrderToPackingFactor() {
+        let selectedUnit = unitSelect.options[unitSelect.selectedIndex];
+        return parseFloat(selectedUnit?.getAttribute("data-weight")) || 1; // Fetch from DB
     }
 
-    attachEventListeners(document.querySelector('.product-block'));
+    function calculateTotalPackage() {
+        let quantity = parseFloat(quantityInput.value) || 0;
+        let orderToPackingFactor = getOrderToPackingFactor();
+        let selectedPackage = packageSelect.options[packageSelect.selectedIndex];
+        let netWeight = parseFloat(selectedPackage?.getAttribute("data-net-weight")) || 1;
+        
+        let totalPackage = (quantity * orderToPackingFactor) / netWeight;
+        totalPackageInput.value = Math.max(totalPackage, 1).toFixed(2);
 
-    function calculateTotals() {
+        calculateTotals();
+        updateWeights();
+    }
+
+    function calculate() {
+        let quantity = parseFloat(quantityInput.value) || 0;
+        let price = parseFloat(priceInput.value) || 0;
+        totalPriceInput.value = (quantity * price).toFixed(2);
+        calculateTotalPackage();
+    }
+
+    function updateWeights() {
+        let selectedOption = packageSelect.options[packageSelect.selectedIndex];
+        let totalPackage = parseFloat(totalPackageInput.value) || 1;
+        console.log("totalPackage : ",totalPackage )
+        let netWeight = parseFloat(selectedOption?.getAttribute("data-net-weight")) || 0;
+        console.log("netWeight :",netWeight)
+        let grossWeight = parseFloat(selectedOption?.getAttribute("data-gross-weight")) || 0;
+        console.log("gross wight : ",grossWeight)
+
+        netWeightInput.value = (netWeight * totalPackage).toFixed(2);
+        grossWeightInput.value = (grossWeight * totalPackage).toFixed(2);
+
+        calculateTotals();
+    }
+
+    quantityInput.addEventListener('input', calculate);
+    priceInput.addEventListener('input', calculate);
+    packageSelect.addEventListener('change',() => {
+        calculateTotalPackage(); // Update totalPackage on package change
+        updateWeights();
+    });
+    unitSelect.addEventListener('change', calculateTotalPackage);
+}
+
+document.querySelectorAll('.product-block').forEach(attachEventListeners);
+
+function calculateTotals() {
     let totalNetWeight = 0;
     let totalGrossWeight = 0;
     let totalNative = 0;
@@ -236,31 +263,22 @@
         totalNative += totalPrice;
     });
 
-            let conversionRate = parseFloat(document.querySelector("input[name='conversion_rate']")?.value) || 1;
-            let totalINR = totalNative * conversionRate;
+    let conversionRate = parseFloat(document.querySelector("input[name='conversion_rate']")?.value) || 1;
+    let totalINR = totalNative * conversionRate;
 
-            document.querySelector("input[name='totalNetWeight']").value = totalNetWeight.toFixed(2);
-            document.querySelector("input[name='totalGrossWeight']").value = totalGrossWeight.toFixed(2);
-            document.querySelector("input[name='total_native']").value = totalNative.toFixed(2);
-            document.querySelector("input[name='total_inr']").value = totalINR.toFixed(2);
-        }
+    document.querySelector("input[name='totalNetWeight']").value = totalNetWeight.toFixed(2);
+    document.querySelector("input[name='totalGrossWeight']").value = totalGrossWeight.toFixed(2);
+    document.querySelector("input[name='total_native']").value = totalNative.toFixed(2);
+    document.querySelector("input[name='total_inr']").value = totalINR.toFixed(2);
+}
 
-        // Event listener for input changes (works on dynamic elements)
-        document.addEventListener("input", function(event) {
-            if (event.target.matches(".quantity, .price, .totalPackage, .packageSelect, .netWeight, .grossWeight, .totalPrice, input[name='conversion_rate']")) {
-                calculateTotals();
-            }
-        });
+document.addEventListener("input", function(event) {
+    if (event.target.matches(".quantity, .price, .totalPackage, .packageSelect, .netWeight, .grossWeight, .totalPrice, input[name='conversion_rate']")) {
+        calculateTotals();
+    }
+});
 
-        
-        const productContainer = document.getElementById("productContainer");
-        const observer = new MutationObserver(() => {
-            calculateTotals();
-        });
-
-        observer.observe(productContainer, { childList: true, subtree: true });
-
-        document.addEventListener("DOMContentLoaded", calculateTotals);
+document.addEventListener("DOMContentLoaded", calculateTotals);
 
         document.querySelector("form").addEventListener("submit", function() {
             document.querySelectorAll("input[disabled]").forEach(input => {

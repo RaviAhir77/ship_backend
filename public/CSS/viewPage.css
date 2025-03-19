@@ -5,7 +5,7 @@
 
 .top-bar {
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
+    justify-content: flex-end; 
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
