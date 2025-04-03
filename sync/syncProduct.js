@@ -8,6 +8,7 @@ import portSchema from "../model/portSchema.js";
 import currencySchema from "../model/currencySchema.js";
 import quotationSchema from "../model/quotationSchema.js";
 import quotationProductSchema from "../model/quotationProductSchema.js";
+import Test from "../model/testSchema.js";
 import '../model/index.js'
 
 async function ProductSyncer(){
@@ -18,5 +19,5 @@ async function ProductSyncer(){
         console.error('error in a table sync',error)
     }
 };
-
+    
 ProductSyncer();

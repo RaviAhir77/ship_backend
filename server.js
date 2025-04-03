@@ -16,6 +16,6 @@ app.use(express.urlencoded({ extended: true }));
 loadRoute(app)
 
 app.listen(8000,() => {
-    console.log('server is a running on a 3000');
+    console.log('server is a running on a 8000');
 })
 
